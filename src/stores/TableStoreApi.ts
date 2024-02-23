@@ -1,0 +1,104 @@
+import { ref } from 'vue'
+import type { Ref } from 'vue'
+import axios from 'axios'
+import type { RawDataType, PokemonEntry } from './TableStore'
+import { capitalize, startCase } from 'lodash'
+
+export const booleans = ref({
+  apiDataLoaded: false,
+})
+
+
+const getPokemonNames = async () => {
+  console.log("*** getPokemonNames()")
+  const rawPokemonList = await axios.get('https://pokeapi.co/api/v2/pokemon/')
+  let pokemonNames: Array<string> = []
+  for (let i = 0; i < rawPokemonList.data.results.length; i++) {
+    pokemonNames.push(rawPokemonList.data.results[i].name)
+  }
+
+  return pokemonNames
+}
+
+
+const getPokemonTypes = (rawPokemonData: RawDataType) => {
+  console.log("*** getPokemonTypes()")
+  const typesObject = rawPokemonData.data.types
+
+  console.log("typesObject length: " + typesObject.length + " " + typesObject)
+  console.log(typesObject)
+  console.log(typesObject[0].type.name)
+
+  if (!typesObject[1]) {
+    return capitalize(typesObject[0].type.name)
+  } else {
+    return capitalize(typesObject[0].type.name) + ", " + capitalize(typesObject[1].type.name)
+  }
+}
+
+const getIndividualPokemonData = async (pokemonName: string, index: number) => {
+  console.log("*** getIndividualPokemonData()")
+  const rawPokemonData: RawDataType = await axios.get(
+    `https://pokeapi.co/api/v2/pokemon/${pokemonName}`
+  )
+  console.log(rawPokemonData)
+
+  const pokemonHeight = rawPokemonData.data.height
+  const pokemonTypes = getPokemonTypes(rawPokemonData)
+  const pokemonIndex = index
+  // optional: abilities,
+  const pokemonObject = {
+    name: capitalize(pokemonName),
+    types: pokemonTypes,
+    height: pokemonHeight,
+    pokedexIndex: pokemonIndex
+  }
+  console.log("*** getIndividualPokemonData() done. returning: " + pokemonObject.name)
+  return pokemonObject
+}
+
+const createPokemonList = async (): Promise<Array<PokemonEntry>> => {
+  console.log("*** createPokemonList()")
+  try {
+    let tempPokemonList: Array<PokemonEntry> = []
+
+    const pokemonNames = await getPokemonNames()
+
+    for (const element of pokemonNames) {
+      console.log("Foreach loop, fetching data on: " + element)
+      const newPokemonEntry = await getIndividualPokemonData(element, pokemonNames.indexOf(element))
+      console.log(element + " found. Pushing: " + newPokemonEntry)
+      tempPokemonList.push(newPokemonEntry)
+      console.log("full list so far: ")
+      console.log(tempPokemonList)
+    }
+    console.log("Loops done. Full list so far: ")
+    console.log(tempPokemonList)
+    console.log("*** createPokemonList() done. returning: " + tempPokemonList)
+    return tempPokemonList
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const pokemonList: Ref<Array<PokemonEntry>> = ref([])
+// begynn her. hver pokemon entry legges ikke til ordentlig. sjekk oreach her!
+export const makeList = async () => {
+  console.log("*** makeList()")
+  try {
+    console.log("*-- makeList() try block")
+    let tempList = await createPokemonList()
+    console.log("*-- makeList() await finished: " + tempList)
+    booleans.value.apiDataLoaded = true;
+    console.log("*-- makeList() forEach beginning")
+    tempList.forEach(element => {
+      console.log("pushing " + element.name + " to pokemonList")
+      pokemonList.value.push(element)
+    })
+    console.log("pokemonList pushing part done successfully!" + pokemonList.value)
+    return pokemonList.value
+  } catch (error) {
+    console.log(error)
+    return
+  }
+}
