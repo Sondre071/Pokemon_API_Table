@@ -8,88 +8,40 @@ import { useTableStore } from '../stores/TableStore';
 
 const store = useTableStore();
 
-onMounted(() => {
-  store.getPokemonApiData();
+onMounted(async () => {
+  await store.createPokemonList();
+  store.createDataFields();
+  store.fillArrays();
+  store.createResetObject();
+  store.searchFunction();
 });
-
-const sourceData = store.getPokemonData;
 
 const pokemonList = store.getPokemonData;
 const pokemonListKeys = store.getPokemonDataKeys;
 
-console.log('bah' + pokemonListKeys);
 
-const fillArray = (value: TableTypes.AcceptedTypes) => {
-  return Object.keys(sourceData[0]).map(() => value);
-};
 
-onMounted(() => {
-  store.searchFunction()
-}
-  )
+
 
 /***
  * Data
  */
 
-const tableData: Ref<TableTypes.TableDataType> = ref({
-  baseData: sourceData, // Base data to draw from
-  renderedData: sourceData, // Filtered and searched data
-  unsortedData: sourceData, // Original unsorted data plus new entries
-  dataFields: Object.keys(sourceData[0]), // Columns/keys/fields
-  currentDropdowns: [], // Dropdowns for filtering
-});
 
-const inputs: Ref<TableTypes.InputsType> = ref({
-  entryEditIndex: undefined,
-  entryEditBackup: {},
-  filterInput: fillArray(undefined),
-  searchInput: '',
-});
-
-const inputResets = cloneDeep(inputs.value);
-
-const booleans: Ref<TableTypes.BooleansType> = ref({
-  oldEntryEdit: false,
-  newEntryEdit: false,
-  filterField: false,
-  filterMode: false,
-  manipulateTable: false,
-  searchMode: false,
-  debug: false,
-});
-
-const sorting: Ref<TableTypes.SortingType> = ref({
-  currentSort: '',
-  sortState: 'none',
-});
 
 /***
  * Data get and set functions
  */
 
-const getData = <K extends keyof TableTypes.TableDataType>(
-  key: K,
-  consoleString: String,
-): TableTypes.TableDataType[K] => {
-  console.log('*-- getData(): ' + key + ' for: ' + consoleString);
-  return tableData.value[key];
-};
 
-const getInput = <K extends keyof TableTypes.InputsType>(str: K): TableTypes.InputsType[K] => {
-  console.log('*-- getInput(): ' + str);
-  return inputs.value[str];
-};
+
 
 const entryEditStatus = (): boolean => {
   console.log('*-- entryEditStatus()');
-  return getInput('entryEditIndex') !== undefined ? true : false;
+  return store.currentEditIndex !== undefined ? true : false;
 };
 
-const getBoolean = <K extends keyof TableTypes.BooleansType>(str: K): boolean => {
-  console.log('*-- getBoolean(): ' + str);
-  return booleans.value[str];
-};
+
 
 const setData = <K extends keyof TableTypes.TableDataType>(
   key: K,
@@ -107,15 +59,6 @@ const setInput = <K extends keyof TableTypes.InputsType>(
   inputs.value[str] = value as TableTypes.InputsType[K];
 };
 
-const changeBoolean = <K extends keyof TableTypes.BooleansType>(
-  str: K,
-  setToggle: boolean | undefined = undefined,
-): void => {
-  console.log(
-    '*-- changeBoolean(): ' + str + ', ' + (setToggle === undefined ? 'toggle' : setToggle),
-  );
-  booleans.value[str] = setToggle === undefined ? !booleans.value[str] : setToggle;
-};
 
 const resetInputsValue = <K extends keyof TableTypes.InputsType>(key: K, index?: number): void => {
   console.log('**- resetInputsValue(): ' + key + ' ' + index);
@@ -132,27 +75,27 @@ const resetInputsValue = <K extends keyof TableTypes.InputsType>(key: K, index?:
 
 const addBlankEntry = (): void => {
   console.log('*** addBlankEntry()');
-  changeBoolean('oldEntryEdit', false);
-  changeBoolean('newEntryEdit', true);
+  store.changeBoolean('oldEntryEdit', false);
+  store.changeBoolean('newEntryEdit', true);
   const blankObject: TableTypes.EntryObject = {};
   const dataFieldsTemp = pokemonListKeys;
   for (let i = 0; i < dataFieldsTemp.length; i++) {
     blankObject[dataFieldsTemp[i]] = '';
   }
-  setInput('entryEditIndex', getData('baseData', 'addBlankEntry()').length);
-  getData('baseData', 'addBlankEntry').push(blankObject);
+  setInput('entryEditIndex', store.renderedPokemonData.length);
+  store.pokemonData.push(blankObject);
 };
 
 const modifyEntry = (index: number): void => {
   console.log('*** modifyEntry(): ' + index);
-  if (getBoolean('newEntryEdit')) {
-    getData('baseData', 'modifyEntry()').splice(getData('baseData', 'modifyEntry()').length - 1);
-    changeBoolean('newEntryEdit', false);
-  } else if (getBoolean('oldEntryEdit')) {
+  if (store.getBoolean('newEntryEdit')) {
+    store.pokemonData.splice(store.pokemonData.length - 1);
+    store.changeBoolean('newEntryEdit', false);
+  } else if (store.getBoolean('oldEntryEdit')) {
     restoreEntry();
   }
-  changeBoolean('oldEntryEdit', true);
-  setInput('entryEditBackup', cloneDeep(getData('renderedData', 'modifyEntry()')[index]));
+  store.changeBoolean('oldEntryEdit', true);
+  setInput('entryEditBackup', cloneDeep(store.renderedPokemonData[index]));
   setInput('entryEditIndex', index);
   console.log('*** modifyEntry() end');
 };
@@ -161,7 +104,7 @@ const validateNewEntry = (): boolean => {
   console.log('*-- validateNewEntry()');
   //const typeMatch = Object.values(getData('baseData')[0]).toString();
   const newEntry = Object.values(
-    getData('baseData', 'validateNewEntry()')[getData('baseData', 'validateNewEntry()').length - 1],
+    store.pokemonData[store.pokemonData.length - 1],
   ); //is string already
 
   return newEntry.every((element) => element !== '');
@@ -169,18 +112,18 @@ const validateNewEntry = (): boolean => {
 
 const saveEntry = (): void => {
   console.log('*-- saveEntry()');
-  const entryIndex = getInput('entryEditIndex') as number;
+  const entryIndex = store.currentEditIndex as number;
 
-  setInput('entryEditIndex', undefined);
+  store.currentEditIndex = undefined;
   resetInputsValue('entryEditBackup');
-  changeBoolean('newEntryEdit', false);
-  changeBoolean('oldEntryEdit', false);
+  store.changeBoolean('newEntryEdit', false);
+  store.changeBoolean('oldEntryEdit', false);
 };
 
 const restoreEntry = (): void => {
-  const index = getInput('entryEditIndex');
+  const index = store.currentEditIndex;
   if (index !== undefined) {
-    getData('baseData', 'restoreEntry()')[index] = getInput('entryEditBackup');
+    store.pokemonData[index] = store.currentEditBackup;
     resetInputsValue('entryEditBackup');
     resetInputsValue('entryEditIndex');
   }
@@ -188,44 +131,17 @@ const restoreEntry = (): void => {
 
 const deleteEntry = (index: number): void => {
   console.log('*-- deleteEntry()');
-  getData('baseData', 'deleteEntry').splice(index, 1);
+  store.pokemonDataplice(index, 1);
 };
 
 /***
  * table functions
  */
 
-const sortTable = (key: string): void => {
-  console.log('*** sorttable()');
-  const states: ('none' | 'ascending' | 'descending')[] = [
-    'none',
-    'ascending',
-    'descending',
-  ] as const;
-  if (sorting.value.currentSort !== key) {
-    sorting.value.sortState = 'none';
-  }
-  const currentIndex = states.indexOf(sorting.value.sortState);
-  const nextIndex = (currentIndex + 1) % states.length;
-  const nextState = states[nextIndex];
-  const sortActions = {
-    none: (key: string = 'default') => (tableData.value.baseData = tableData.value.unsortedData),
-    ascending: (key: string) =>
-      (tableData.value.baseData = sortBy(getData('baseData', 'sortTable()'), key)),
-    descending: (key: string = 'default') =>
-      (tableData.value.baseData = sortBy(getData('baseData', 'sortTable()').reverse())),
-  };
-
-  sorting.value.currentSort = key;
-  sorting.value.sortState = nextState;
-  setData('baseData', sortActions[nextState](key));
-  console.log('*** sortTable() end');
-};
-
 const searchFunction = (): void => {
   console.log('*** searchFunction()');
 
-  const tempBaseData = getData('baseData', 'searchFunction()');
+  const tempBaseData = store.pokemonData;
   let tempRenderedData: Array<TableTypes.EntryObject> = [];
   const tempSearch = getInput('searchInput');
   const tempFilters = getInput('filterInput');
@@ -258,7 +174,7 @@ const dropdownMapping = (): void => {
   const tempDropdowns: Set<TableTypes.AcceptedTypes>[] = pokemonListKeys.map(() => new Set());
 
   console.log('bing');
-  getData('renderedData', 'dropdownMapping()').forEach((element) => {
+  store.renderedPokemonData.forEach((element) => {
     Object.values(element).forEach((value: TableTypes.AcceptedTypes, index) => {
       tempDropdowns[index].add(value);
     });
@@ -279,35 +195,35 @@ const dropdownMapping = (): void => {
 
 const resetButton = (): void => {
   console.log('*** resetButton()');
-  if (getBoolean('newEntryEdit')) {
-    deleteEntry(getInput('entryEditIndex') as number);
-    changeBoolean('newEntryEdit');
+  if (store.getBoolean('newEntryEdit')) {
+    deleteEntry(store.currentEditIndex as number);
+    store.changeBoolean('newEntryEdit');
   }
   const resetList: Array<keyof TableTypes.InputsType> = Object.keys(inputs.value) as Array<
     keyof TableTypes.InputsType
   >;
   resetList.forEach((element) => resetInputsValue(element));
-  changeBoolean('oldEntryEdit', false);
+  store.changeBoolean('oldEntryEdit', false);
   console.log('*** resetButton end');
 };
 
 const crossButton = (): void => {
-  if (getBoolean('oldEntryEdit')) {
+  if (store.getBoolean('oldEntryEdit')) {
     restoreEntry();
-    changeBoolean('oldEntryEdit', false);
-  } else if (getBoolean('newEntryEdit')) {
-    deleteEntry(getData('baseData', 'crossButton()').length - 1);
-    changeBoolean('newEntryEdit', false);
+    store.changeBoolean('oldEntryEdit', false);
+  } else if (store.getBoolean('newEntryEdit')) {
+    deleteEntry(store.renderedPokemonData.length - 1);
+    store.changeBoolean('newEntryEdit', false);
   }
-  setInput('entryEditIndex', undefined);
+  store.currentEditIndex = undefined;
   setInput('entryEditBackup', {});
   console.log('*** crossButton() end');
 };
 
 const deleteButton = (index: number): void => {
   console.log('*** deleteButton()');
-  const currentIndex = getInput('entryEditIndex');
-  getData('baseData', 'deleteButton()').splice(index, 1);
+  const currentIndex = store.currentEditIndex;
+  store.pokemonData.splice(index, 1);
   if (index === currentIndex) {
     resetInputsValue('entryEditIndex');
     return;
@@ -317,30 +233,18 @@ const deleteButton = (index: number): void => {
   console.log('*** deleteButton() end');
 };
 
-const sortStateIcon = (field: string): string => {
-  console.log('*-- sortStateIcon()');
-  if (field !== sorting.value.currentSort) {
-    return '&#8693;';
-  }
-  const icons = {
-    none: '&#8693;',
-    ascending: '&#8648;',
-    descending: '&#8650;',
-  } as const;
 
-  return icons[sorting.value.sortState];
-};
 
 const alertFunction = (str: string) => {
   alert(str);
 };
 
-dropdownMapping();
 console.log('----- Website loaded -----');
 
-watch(() => tableData.value.baseData, searchFunction, { deep: true });
-watch(() => inputs.value.searchInput, searchFunction);
-watch(() => inputs.value.filterInput, searchFunction, { deep: true });
+// watch(() => tableData.value.baseData, searchFunction, { deep: true });
+// watch(() => inputs.value.searchInput, searchFunction);
+// watch(() => inputs.value.filterInput, searchFunction, { deep: true });
+watch(() => store.search, store.searchFunction, { deep: true });
 </script>
 
 <template>
@@ -356,7 +260,7 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
               <input
                 type="search"
                 name="form"
-                v-model="inputs.searchInput"
+                v-model="store.search"
                 placeholder="Search for property"
                 aria-describedby="button-addon2"
               />
@@ -367,10 +271,10 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
                   <th
                     class=""
                     :class="{
-                      'filter-mode': getBoolean('filterMode'),
-                      'non-filter-mode': !getBoolean('filterMode'),
+                      'filter-mode': store.getBoolean('filterMode'),
+                      'non-filter-mode': !store.getBoolean('filterMode'),
                     }"
-                    v-for="(field, index) in store.getPokemonDataKeys"
+                    v-for="(field, index) in store.dataFields"
                   >
                     {{ field }}
                     <button
@@ -380,19 +284,19 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
                         fade: entryEditStatus(),
                       }"
                       class="sort-button icon"
-                      @click="!entryEditStatus() ? sortTable(field) : {}"
+                      @click="!entryEditStatus() ? store.sortTable(field) : {}"
                       aria-label="Sort Icon"
                     >
-                      <span v-html="sortStateIcon(field)"></span>
+                      <span v-html="store.sortIcon(field)"></span>
                     </button>
-                    <div v-show="getBoolean('filterMode')" class="dropdowns-container">
+                    <div v-show="store.getBoolean('filterMode')" class="dropdowns-container">
                       <div class="dropdowns">
                         <select
-                          v-model="inputs.filterInput[index]"
-                          :disabled="getInput('entryEditIndex') !== undefined"
+                          v-model="store.filters[index]"
+                          :disabled="store.currentEditIndex !== undefined"
                         >
                           <option
-                            v-for="(value, valueIndex) in getData('currentDropdowns', 'dropdowns')[
+                            v-for="(value, valueIndex) in store.currentDropdowns[
                               index
                             ]"
                             :key="valueIndex"
@@ -405,7 +309,7 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
                             interactable: !entryEditStatus(),
                             fade: entryEditStatus(),
                           }"
-                          :disabled="getInput('entryEditIndex') !== undefined"
+                          :disabled="store.currentEditIndex !== undefined"
                           class="bi bi-trash3 icon"
                           @click="resetInputsValue('filterInput', index)"
                         ></button>
@@ -417,12 +321,11 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
               </thead>
               <tbody>
                 <tr
-                  v-for="(item, index) in store.getPokemonData"
-                  :key="store.getPokemonData.indexOf(item)"
+                  v-for="(item, index) in store.renderedPokemonData"
                 >
-                  <template v-if="getInput('entryEditIndex') === index">
-                    <td v-for="key in store.getPokemonDataKeys" :key="key">
-                      <input type="text" v-model="store.getPokemonData[index][key]" />
+                  <template v-if="store.currentEditIndex === index">
+                    <td v-for="key in store.dataFields" :key="key">
+                      <input type="text" v-model="store.pokemonData[index][key]" />
                     </td>
                     <td class="list-buttons">
                       <button
@@ -438,14 +341,14 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
                     </td>
                   </template>
                   <template v-else>
-                    <td v-for="key in store.getPokemonDataKeys" :key="key">
+                    <td v-for="key in store.dataFields" :key="key">
                       {{ item[key] }}
                     </td>
                     <td class="list-buttons">
                       <button
                         id="pen"
                         :class="{
-                          invisible: !getBoolean('manipulateTable'),
+                          invisible: !store.getBoolean('manipulateTable'),
                         }"
                         class="icon interactable"
                         style="transform: rotate(90deg)"
@@ -458,7 +361,7 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
                       <button
                         id="trash-can"
                         :class="{
-                          invisible: !getBoolean('manipulateTable'),
+                          invisible: !store.getBoolean('manipulateTable'),
                         }"
                         class="bi bi-trash3 icon interactable"
                         @click="deleteButton(index)"
@@ -475,12 +378,12 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
             id="funnel-button"
             class="bi bi-funnel-fill interactable icon"
             v
-            @click="changeBoolean('filterMode')"
+            @click="store.changeBoolean('filterMode')"
             title="Filter by properties"
           ></button>
           <button
             class="bi bi-wrench icon interactable"
-            @click="changeBoolean('manipulateTable')"
+            @click="store.changeBoolean('manipulateTable')"
             title="Modify table"
           ></button>
           <button
@@ -503,30 +406,37 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
           <button
             id="debug-button"
             class="bi bi-bug icon interactable fade"
-            @click="changeBoolean('debug')"
+            @click="store.changeBoolean('debug')"
             title="Debug mode"
           ></button>
         </div>
       </div>
       <h4 style="font-size: 15px; margin-top: 5px; font-weight: normal">
-        Total entries: {{ tableData.baseData.length }}
+        Total entries: {{ store.pokemonData.length }}
       </h4>
     </div>
     <footer>
-      <div class="debug-box" v-show="getBoolean('debug')">
+      <div class="debug-box" v-show="store.getBoolean('debug')">
         <div class="debug-inner-box">
           <div class="inputs-and-booleans-debug">
             <div class="inner-boxes">
-              <div v-for="(item, key) in inputs">
-                <p>
-                  {{ key }}:<br />
-                  {{ item }}
-                </p>
+              <div>
+                <p>{{ store.renderedPokemonData }}</p>
+                <p>{{ store.pokemonData }}</p>
+                <p>{{ store.dataFields }}</p>
+                <p>{{ store.currentDropdowns }}</p>
+                <p>{{ store.filters }}</p>
+                <p>search: {{ store.search }}</p>
+                <p>{{ store.currentEditIndex }}</p>
+                <p>{{ store.currentEditBackup }}</p>
+                <p>sortState: {{ store.sortState }}</p>
+                <p>sortField: {{ store.sortField }}</p>
+               
               </div>
             </div>
             <div class="inner-boxes">
-              <div v-for="(item, key) in booleans">
-                <p :class="{ green: getBoolean(key as string), red: !getBoolean(key as string) }">
+              <div v-for="(item, key) in store.booleans">
+                <p :class="{ green: store.getBoolean(key as string), red: !store.getBoolean(key as string) }">
                   {{ key }}:<br />
                   {{ item }}
                 </p>
@@ -534,19 +444,8 @@ watch(() => inputs.value.filterInput, searchFunction, { deep: true });
             </div>
           </div>
         </div>
-        <div class="inner-boxes">
-          <div class="tableData-debug" v-for="(item, keys) in tableData">
-            <p :class="{ green: getBoolean(keys) }">{{ keys }}:<br />{{ item }}</p>
-          </div>
-        </div>
       </div>
-      <h3>{{ store.getPokemonData[0] }}</h3>
-      <div v-for="(value, index) in store.inputs">
-        {{ value }}
-        {{ value }}
-      </div>
-      <p>{{ store.checkFilters() }}</p>
-      <button @click="store.filterListByFilters(store.pokemonData)" >FILTER TEST</button>
+      <h3>{{ store.pokemonData[0] }}</h3>
     </footer>
   </main>
 </template>
