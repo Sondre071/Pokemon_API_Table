@@ -11,16 +11,11 @@ const store = useTableStore();
 onMounted(async () => {
   await store.createPokemonList();
   store.createDataFields();
-  store.fillArrays();
+  store.fillArrays(store.dataFields.length);
   store.createResetObject();
+  store.dropdownMapping();
   store.searchFunction();
 });
-
-const pokemonList = store.getPokemonData;
-const pokemonListKeys = store.getPokemonDataKeys;
-
-
-
 
 
 /***
@@ -78,7 +73,7 @@ const addBlankEntry = (): void => {
   store.changeBoolean('oldEntryEdit', false);
   store.changeBoolean('newEntryEdit', true);
   const blankObject: TableTypes.EntryObject = {};
-  const dataFieldsTemp = pokemonListKeys;
+  const dataFieldsTemp = store.dataFields;
   for (let i = 0; i < dataFieldsTemp.length; i++) {
     blankObject[dataFieldsTemp[i]] = '';
   }
@@ -131,43 +126,13 @@ const restoreEntry = (): void => {
 
 const deleteEntry = (index: number): void => {
   console.log('*-- deleteEntry()');
-  store.pokemonDataplice(index, 1);
+  store.pokemonData.splice(index, 1);
 };
 
 /***
  * table functions
  */
-
-const searchFunction = (): void => {
-  console.log('*** searchFunction()');
-
-  const tempBaseData = store.pokemonData;
-  let tempRenderedData: Array<TableTypes.EntryObject> = [];
-  const tempSearch = getInput('searchInput');
-  const tempFilters = getInput('filterInput');
-
-  for (let i = 0; i < tempBaseData.length; i++) {
-    console.log('*- Searchfunction() working... Iteration: ' + i);
-    const stringedValues = JSON.stringify(Object.values(tempBaseData[i]));
-    if (!tempSearch || stringedValues.toLowerCase().includes(tempSearch)) {
-      if (
-        Object.values(tempBaseData[i]).every(
-          (element, index) => !tempFilters[index] || element == tempFilters[index],
-        )
-      ) {
-        tempRenderedData.push(tempBaseData[i]);
-      } else {
-        continue;
-      }
-    } else {
-      continue;
-    }
-  }
-  setData('renderedData', tempRenderedData);
-  dropdownMapping();
-  console.log('***searchFunction() end');
-};
-
+/*
 const dropdownMapping = (): void => {
   console.log('*** dropDownMapping()');
 
@@ -188,7 +153,7 @@ const dropdownMapping = (): void => {
   console.log('*** dropDownMapping end');
   console.log('bang');
 };
-
+*/
 /***
  * Buttons
  */
@@ -235,16 +200,11 @@ const deleteButton = (index: number): void => {
 
 
 
-const alertFunction = (str: string) => {
-  alert(str);
-};
+
+
 
 console.log('----- Website loaded -----');
 
-// watch(() => tableData.value.baseData, searchFunction, { deep: true });
-// watch(() => inputs.value.searchInput, searchFunction);
-// watch(() => inputs.value.filterInput, searchFunction, { deep: true });
-watch(() => store.search, store.searchFunction, { deep: true });
 </script>
 
 <template>
@@ -292,7 +252,7 @@ watch(() => store.search, store.searchFunction, { deep: true });
                     <div v-show="store.getBoolean('filterMode')" class="dropdowns-container">
                       <div class="dropdowns">
                         <select
-                          v-model="store.filters[index]"
+                          v-model="store.activeFilters[index]"
                           :disabled="store.currentEditIndex !== undefined"
                         >
                           <option
@@ -311,7 +271,7 @@ watch(() => store.search, store.searchFunction, { deep: true });
                           }"
                           :disabled="store.currentEditIndex !== undefined"
                           class="bi bi-trash3 icon"
-                          @click="resetInputsValue('filterInput', index)"
+                          @click="store.clearFilterButton(index)"
                         ></button>
                       </div>
                     </div>
@@ -331,7 +291,7 @@ watch(() => store.search, store.searchFunction, { deep: true });
                       <button
                         type="submit"
                         class="new-entry-submit icon interactable"
-                        @click="validateNewEntry() ? saveEntry() : alertFunction('Invalid entry')"
+                        @click="validateNewEntry() ? saveEntry(): {}"
                       >
                         &#10003;
                       </button>
@@ -398,7 +358,7 @@ watch(() => store.search, store.searchFunction, { deep: true });
           <button
             id="clear-button"
             class="icon interactable"
-            @click="resetButton()"
+            @click="store.resetValue('all')"
             title="Reset inputs and filters"
           >
             &#8634;
@@ -406,7 +366,7 @@ watch(() => store.search, store.searchFunction, { deep: true });
           <button
             id="debug-button"
             class="bi bi-bug icon interactable fade"
-            @click="store.changeBoolean('debug')"
+            @click="store.changeBoolean('debugMode')"
             title="Debug mode"
           ></button>
         </div>
@@ -416,16 +376,17 @@ watch(() => store.search, store.searchFunction, { deep: true });
       </h4>
     </div>
     <footer>
-      <div class="debug-box" v-show="store.getBoolean('debug')">
+      <div class="debug-box" v-show="store.getBoolean('debugMode')">
         <div class="debug-inner-box">
           <div class="inputs-and-booleans-debug">
             <div class="inner-boxes">
               <div>
+                <p> {{ store.search }} </p> 
                 <p>{{ store.renderedPokemonData }}</p>
                 <p>{{ store.pokemonData }}</p>
-                <p>{{ store.dataFields }}</p>
+                <p>Datafields: {{ store.dataFields }}</p>
                 <p>{{ store.currentDropdowns }}</p>
-                <p>{{ store.filters }}</p>
+                <p>{{ store.activeFilters }}</p>
                 <p>search: {{ store.search }}</p>
                 <p>{{ store.currentEditIndex }}</p>
                 <p>{{ store.currentEditBackup }}</p>
@@ -445,7 +406,6 @@ watch(() => store.search, store.searchFunction, { deep: true });
           </div>
         </div>
       </div>
-      <h3>{{ store.pokemonData[0] }}</h3>
     </footer>
   </main>
 </template>

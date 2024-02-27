@@ -1,122 +1,173 @@
-import { defineStore } from 'pinia';
+import { defineStore, storeToRefs } from 'pinia';
 import { makeList } from './TableStoreApi';
-import type { RawDataType, PokemonEntry, StateType } from './TableStoreTypes';
+import type { Ref } from 'vue';
+import type {
+  PokemonEntry,
+  pokemonDataType,
+  dataFieldsType,
+  currentDropdownsType,
+  activeFiltersType,
+  searchType,
+  sortStateType,
+  sortFieldType,
+  currentEditIndexType,
+  currentEditBackupType,
+  booleansType,
+  resetObjectType,
+} from './TableStoreTypes';
 import { ref, watch, onMounted } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
-  let pokemonData = ref([{ asdf: '0', asaaf: 'asdf', asdff: 'asdf' }]); // source data
-  let renderedPokemonData = ref([{ asdf: '0', asaaf: 'asdf', asdff: 'asdf' }]); // the data rendered on screen
+  const pokemonData: pokemonDataType = ref([]); // source data
+  const renderedPokemonData: pokemonDataType = ref([]); // the data rendered on screen
 
-  let dataFields = ref(['asdf', 'asdf', 'asdff']);
+  const dataFields: dataFieldsType = ref(['']);
 
-  let currentDropdowns = ref(['', '', '', '']);
-  let filters = [];
-  let search = '';
-  let sortState = ref('none');
-  let sortField = ref('');
+  const currentDropdowns: currentDropdownsType = ref([]);
+  const activeFilters: activeFiltersType = ref([]);
+  const search: searchType = ref('');
+  const sortState: sortStateType = ref('none');
+  const sortField: sortFieldType = ref('');
 
-  let currentEditIndex = undefined;
-  let currentEditBackup = undefined;
+  const currentEditIndex: currentEditIndexType = ref(undefined);
+  const currentEditBackup: currentEditBackupType = ref(undefined);
 
-  const booleans = {
+  const booleans: booleansType = ref({
     oldEntryEdit: false,
     newEntryEdit: false,
-    filterField: false,
     filterMode: false,
     manipulateTable: false,
     searchMode: false,
-    debug: true,
-  };
+    debugMode: false,
+  });
 
-  let resetObject = {};
+  const resetObject: resetObjectType = {};
 
   async function createPokemonList(): Promise<void> {
     const newPokemonData = await makeList();
 
-    this.pokemonData = newPokemonData;
-    this.renderedPokemonData = cloneDeep(newPokemonData);
+    pokemonData.value = newPokemonData;
+    renderedPokemonData.value = cloneDeep(newPokemonData);
     console.log('*** tableStore.getPokemonApiData()');
-    console.log(this.pokemonData);
-    console.log(this.renderedPokemonData);
+    console.log(pokemonData.value);
+    console.log(renderedPokemonData.value);
   }
 
   function createDataFields() {
-    this.dataFields = Object.keys(this.pokemonData[0]);
+    dataFields.value = Object.keys(pokemonData.value[0]);
   }
 
   function createResetObject() {
-    const resetList = [
-      'currentDropdowns',
-      'filters',
-      'search',
-      'currentEditIndex',
-      'currentEditBackup',
-    ];
+    const returnObject = {
+      currentDropdowns: currentDropdowns.value,
+      activeFilters: activeFilters.value,
+      search: search.value,
+      currentEditIndex: currentEditIndex.value,
+      currentEditBackup: currentEditBackup.value,
+    };
 
-    const returnObject = {};
-
-    resetList.forEach((element) => (returnObject[element] = cloneDeep(this[element])));
-    console.log('returnObject: ');
-    console.log(returnObject);
-
-    this.resetObject = returnObject;
+    resetObject.value = returnObject;
   }
 
-  function fillArrays() {
-    this.dataFields.forEach(() => {
-      this.currentDropdowns.push('');
-      this.filters.push('');
-    });
+  function resetValue(name: string) {
+    if (name === 'currentDropdowns') {
+      () => currentDropdowns.value.fill('', 0, dataFields.value.length);
+    } else if (name === 'activeFilters') {
+      () => activeFilters.value.fill('', 0, dataFields.value.length);
+    } else if (name === 'search') {}
+    else if (name === 'currentEditIndex') {
+
+    }
+    else if (name === 'currentEditBackup') {
+    }
+    
+    // start her!
+
+    const resetObjectIndex = {
+      currentDropdowns: () => currentDropdowns.value.fill('', 0, dataFields.value.length),
+      activeFilters: () => activeFilters.value.fill('', 0, dataFields.value.length),
+      search: () => (search.value = ''),
+      currentEditIndex: () => (currentEditIndex.value = undefined),
+      currentEditBackup: () => (currentEditBackup.value = undefined),
+    };
+
+    if (name === 'all') {
+      console.log('all accessed');
+      const functionNames = Object.keys(resetObjectIndex);
+      for (const element in functionNames) {
+        resetObjectIndex[element];
+      }
+      return;
+    }
+
+    resetObjectIndex[name];
+
+    switch (name) {
+      case 'currentDropdowns':
+        currentDropdowns.value.fill('', 0, dataFields.value.length);
+        break;
+      case 'activeFilters':
+        activeFilters.value.fill('', 0, dataFields.value.length);
+        break;
+      case 'search':
+        search.value = '';
+        break;
+      case 'currentEditIndex':
+        currentEditIndex.value = undefined;
+        break;
+      case 'currentEditBackup':
+        currentEditBackup.value = undefined;
+        break;
+      default:
+        console.log('Case switch defaulted');
+        break;
+    }
+
+    resetObjectIndex[index];
   }
 
-  function changeBoolean(str, setToggle = undefined): void {
-    this.booleans[str] = setToggle === undefined ? !this.booleans[str] : setToggle;
+  function fillArrays(number: number) {
+    currentDropdowns.value.fill('', 0, number);
+    activeFilters.value.fill('', 0, number);
   }
 
-  function getBoolean(str) {
-    return this.booleans[str];
+  function changeBoolean(str: string, setToggle: boolean | undefined = undefined): void {
+    booleans.value[str] = setToggle === undefined ? !booleans.value[str] : setToggle;
   }
 
   function checkSearch(): boolean {
-    return this.search !== '';
+    return search.value !== '';
   }
 
   function checkFilters(): boolean {
-    return this.filters.some((index) => index !== '');
+    return activeFilters.value.some((index) => index !== '');
   }
 
   function sortTable(key: string): void {
-    if (key !== this.sortField) {
-      this.sortState = 'none';
-      this.renderedPokemonData = this.pokemonData;
-    }
-    this.sortField = key;
-
-    const sortObject = {
-      none: sortBy(this.renderedPokemonData, key),
-      ascending: sortBy(this.renderedPokemonData.reverse()),
-      descending: sortBy(this.renderedPokemonData, 'pokedexIndex'),
-    } as const;
-
-    this.renderedPokemonData = sortObject[this.sortState];
-
-    console.log(this.renderedPokemonData);
-
-    if (this.sortState === 'none') {
-      this.sortState = 'ascending';
-      return;
-    }
-    if (this.sortState === 'ascending') {
-      this.sortState = 'descending';
-      return;
-    }
-    if (this.sortState === 'descending') {
-      this.sortState = 'none';
-      return;
+    if (sortField.value && key !== sortField.value) {
+      sortState.value = 'none';
+      renderedPokemonData.value = pokemonData.value;
     }
 
-    console.log('no ifs passed');
+    sortField.value = key;
+
+    switch (sortState.value) {
+      case 'none':
+        renderedPokemonData.value = sortBy(renderedPokemonData.value, key);
+        sortState.value = 'ascending';
+        break;
+      case 'ascending':
+        renderedPokemonData.value = sortBy(renderedPokemonData.value.reverse());
+        sortState.value = 'descending';
+        break;
+      case 'descending':
+        renderedPokemonData.value = sortBy(renderedPokemonData.value, 'pokedexIndex');
+        sortState.value = 'none';
+        break;
+    }
+
+    console.log(renderedPokemonData.value);
   }
 
   function sortIcon(field: string): string {
@@ -128,18 +179,18 @@ export const useTableStore = defineStore('tableStore', () => {
       descending: '&#8650;',
     } as const;
 
-    if (field !== this.sortField) {
+    if (field !== sortField.value) {
       return icons.none;
     } else {
-      return icons[this.sortState];
+      return icons[sortState.value];
     }
   }
 
   function filterListByFilters(data: Array<PokemonEntry>): Array<PokemonEntry> {
     console.log('filterListByFilters()');
 
-    const currentFilters = this.filters;
-    let returnArray: Array<PokemonEntry> = [];
+    const currentFilters = activeFilters.value;
+    let filteredArray: Array<PokemonEntry> = [];
 
     for (let i = 0; i < data.length; i++) {
       const values = Object.values(data[i]);
@@ -148,81 +199,131 @@ export const useTableStore = defineStore('tableStore', () => {
       console.log(data[i]);
 
       if (values.some((element, index) => element == currentFilters[index])) {
-        returnArray.push(data[i]);
+        filteredArray.push(data[i]);
       }
     }
 
-    console.log('*** loop done, returning: ' + returnArray);
+    console.log('*** loop done, returning: ' + filteredArray);
 
-    return returnArray;
+    return filteredArray;
   }
 
   function filterListBySearch(data: Array<PokemonEntry>) {
-    console.log('filterListBySearch(): ' + this.search);
+    console.log('filterListBySearch(): ' + search.value);
 
-    const searchInput = this.search;
-    let returnArray = [];
+    const searchInput = search.value;
+    let filteredArray = [];
 
     for (let i = 0; i < data.length; i++) {
       const valuesToCheck = Object.values(data[i]);
 
-      if (valuesToCheck.some((element) => element.toString().includes(searchInput))) {
-        returnArray.push(data[i]);
+      if (
+        valuesToCheck.some((element) =>
+          element.toString().toLowerCase().includes(searchInput.toLowerCase()),
+        )
+      ) {
+        filteredArray.push(data[i]);
       }
     }
-    return returnArray;
+    return filteredArray;
   }
 
   function searchFunction() {
     console.log('searchFunction()');
 
-    let currentPokemonList = this.pokemonData as Array<PokemonEntry>;
+    let currentPokemonList = pokemonData.value as Array<PokemonEntry>;
     console.log('pre checkFilters(): ');
     console.log(currentPokemonList);
 
-    if (this.checkFilters()) {
-      currentPokemonList = this.filterListByFilters(currentPokemonList);
+    if (checkFilters()) {
+      currentPokemonList = filterListByFilters(currentPokemonList);
     }
     console.log('pre checkSearch(): ');
     console.log(currentPokemonList);
 
-    if (this.checkSearch()) {
-      currentPokemonList = this.filterListBySearch(currentPokemonList);
+    if (checkSearch()) {
+      currentPokemonList = filterListBySearch(currentPokemonList);
     }
 
     console.log('searchfunction() end: ');
 
     console.log(currentPokemonList);
-    this.currentPokemonList = currentPokemonList;
+    renderedPokemonData.value = currentPokemonList;
   }
   function getPokemonData(): Array<PokemonEntry | undefined> {
     console.log('*** tableStore.getPokemonData()');
 
-    return this.pokemonData as Array<PokemonEntry>;
+    return pokemonData.value as Array<PokemonEntry>;
   }
 
   function getPokemonDataKeys(): Array<String> {
     console.log('*** tableStore.getPokemonDataKeys()');
 
-    const pokemonKeys = Object.keys(this.pokemonData[0]);
+    const pokemonKeys = Object.keys(pokemonData.value[0]);
     return pokemonKeys;
   }
 
+  function dropdownMapping() {
+    const filteredDropdowns = dataFields.value.map(() => new Set());
+
+    renderedPokemonData.value.forEach((element) => {
+      Object.values(element).forEach((value, index) => {
+        console.log('adding: ' + value);
+        filteredDropdowns[index].add(value);
+      });
+    });
+
+    currentDropdowns.value = filteredDropdowns.map((element) => sortBy([...element]));
+  }
+
   function getSearch(): string {
-    return this.search;
+    return search.value;
   }
 
   function getFilters(): Array<String> {
-    return this.inputs.filters;
+    return activeFilters.value;
   }
 
-  function getBoolean(name): boolean {
-    const returnValue = this.booleans[name as unknown as string];
-    return returnValue as boolean;
+  function getBoolean(name: string): boolean {
+    return booleans.value[name];
   }
+
+  /***
+   * Buttons
+   */
+
+  function clearFilterButton(index: number): void {
+    activeFilters.value[index] = '';
+  }
+
+  function modifyEntryButton(index: number): void {
+    console.log('modifyEntryButton()');
+
+    if (getBoolean('newEntryEdit')) {
+      pokemonData.value.splice(pokemonData.value.length - 1);
+      changeBoolean('newEntryEdit', false);
+    } else if (getBoolean('oldEntryEdit')) {
+      restoreEntry();
+    }
+  }
+
+  function restoreEntry() {
+    const index = currentEditIndex.value;
+
+    if (index !== undefined) {
+      pokemonData.value[index] = currentEditBackup.value;
+      resetInputsValue('entryEditBackup');
+      resetInputsValue('entryEditIndex');
+    }
+  }
+
+  function crossButton(): void {}
+
+  function submitButton(): void {}
 
   onMounted(() => {
-    watch(() => this.search, searchFunction());
+    dropdownMapping();
+    watch(() => [search.value, activeFilters.value], searchFunction, { deep: true });
   });
 
   return {
@@ -230,7 +331,7 @@ export const useTableStore = defineStore('tableStore', () => {
     renderedPokemonData,
     dataFields,
     currentDropdowns,
-    filters,
+    activeFilters,
     search,
     currentEditIndex,
     currentEditBackup,
@@ -245,15 +346,27 @@ export const useTableStore = defineStore('tableStore', () => {
     filterListByFilters,
     filterListBySearch,
     searchFunction,
+    //addBlankEntry,
+    //entryEditStatus,
+    clearFilterButton,
     getPokemonData,
     getPokemonDataKeys,
     getSearch,
     getFilters,
     getBoolean,
+    modifyEntryButton,
     changeBoolean,
+    //crossButton,
+    //deleteButton,
+    //deleteEntry,
+    dropdownMapping,
+    //resetButton,
+    resetValue,
+    //restoreEntry,
     sortState,
     sortField,
     sortTable,
     sortIcon,
+    //validateNewEntry,
   };
 });
