@@ -1,16 +1,11 @@
 import { ref } from 'vue';
-import type { Ref } from 'vue';
 import axios from 'axios';
-import type { RawDataType, PokemonEntry } from './TableStoreTypes';
-import { capitalize, startCase } from 'lodash';
+import type { RawDataType, pokemonEntryType } from './TableStoreTypes';
+import { capitalize } from 'lodash';
 
-export const booleans = ref({
-  apiDataLoaded: false,
-});
-
-const getPokemonNames = async () => {
-  console.log('*** getPokemonNames()');
-  const rawPokemonList = await axios.get('https://pokeapi.co/api/v2/pokemon/');
+const getPokemonNames = async (listLength: number) => {
+  // console.log('*** getPokemonNames()');
+  const rawPokemonList = await axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=${listLength}`);
   let pokemonNames: Array<string> = [];
   for (let i = 0; i < rawPokemonList.data.results.length; i++) {
     pokemonNames.push(rawPokemonList.data.results[i].name);
@@ -20,12 +15,12 @@ const getPokemonNames = async () => {
 };
 
 const getPokemonTypes = (rawPokemonData: RawDataType) => {
-  console.log('*** getPokemonTypes()');
+  // console.log('*** getPokemonTypes()');
   const typesObject = rawPokemonData.data.types;
 
-  console.log('typesObject length: ' + typesObject.length + ' ' + typesObject);
-  console.log(typesObject);
-  console.log(typesObject[0].type.name);
+  // console.log('typesObject length: ' + typesObject.length + ' ' + typesObject);
+  // console.log(typesObject);
+  // console.log(typesObject[0].type.name);
 
   if (!typesObject[1]) {
     return capitalize(typesObject[0].type.name);
@@ -35,11 +30,11 @@ const getPokemonTypes = (rawPokemonData: RawDataType) => {
 };
 
 const getIndividualPokemonData = async (pokemonName: string, index: number) => {
-  console.log('*** getIndividualPokemonData()');
+  // console.log('*** getIndividualPokemonData()');
   const rawPokemonData: RawDataType = await axios.get(
     `https://pokeapi.co/api/v2/pokemon/${pokemonName}`,
   );
-  console.log(rawPokemonData);
+  // console.log(rawPokemonData);
 
   const pokemonHeight = rawPokemonData.data.height;
   const pokemonTypes = getPokemonTypes(rawPokemonData);
@@ -51,58 +46,56 @@ const getIndividualPokemonData = async (pokemonName: string, index: number) => {
     height: pokemonHeight,
     pokedexIndex: pokemonIndex,
   };
-  console.log('*** getIndividualPokemonData() done. returning: ' + pokemonObject.name);
+  // console.log('*** getIndividualPokemonData() done. returning: ' + pokemonObject.name);
   return pokemonObject;
 };
 
-const createPokemonList = async (): Promise<Array<PokemonEntry>> => {
-  console.log('*** createPokemonList()');
+const createPokemonList = async (listLength: number): Promise<Array<pokemonEntryType>> => {
+  // console.log('*** createPokemonList()');
   try {
-    let tempPokemonList: Array<PokemonEntry> = [];
+    let tempPokemonList: Array<pokemonEntryType> = [];
 
-    const pokemonNames = await getPokemonNames();
+    const pokemonNames = await getPokemonNames(listLength);
 
     for (const element of pokemonNames) {
-      console.log('Foreach loop, fetching data on: ' + element);
+      // console.log('Foreach loop, fetching data on: ' + element);
       const newPokemonEntry = await getIndividualPokemonData(
         element,
         pokemonNames.indexOf(element),
       );
-      console.log(element + ' found. Pushing: ' + newPokemonEntry);
+      // console.log(element + ' found. Pushing: ' + newPokemonEntry);
       tempPokemonList.push(newPokemonEntry);
-      console.log('full list so far: ');
-      console.log(tempPokemonList);
+      // console.log('full list so far: ');
+      // console.log(tempPokemonList);
     }
-    console.log('Loops done. Full list so far: ');
-    console.log(tempPokemonList);
-    console.log('*** createPokemonList() done. returning: ' + tempPokemonList);
+    // console.log('Loops done. Full list so far: ');
+    // console.log(tempPokemonList);
+    // console.log('*** createPokemonList() done. returning: ' + tempPokemonList);
     return tempPokemonList;
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return Promise.reject(error);
   }
 };
 
-// begynn her. hver pokemon entry legges ikke til ordentlig. sjekk oreach her!
-export const makeList = async (): Promise<Array<PokemonEntry>> => {
-  console.log('*** makeList()');
+export const makeList = async (listLength: number): Promise<Array<pokemonEntryType>> => {
+  // console.log('*** makeList()');
   try {
-    console.log('*-- makeList() try block');
+    // console.log('*-- makeList() try block');
 
-    let pokemonList: Array<PokemonEntry> = [];
-    let tempList = await createPokemonList();
-    booleans.value.apiDataLoaded = true;
+    let pokemonList: Array<pokemonEntryType> = [];
+    let tempList = await createPokemonList(listLength);
 
     tempList.forEach((element) => {
-      console.log('pushing ' + element.name + ' to pokemonList');
+      // console.log('pushing ' + element.name + ' to pokemonList');
       pokemonList.push(element);
     });
 
-    console.log('pokemonList pushing part done successfully!' + pokemonList);
+    // console.log('pokemonList pushing part done successfully!' + pokemonList);
 
     return pokemonList;
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return Promise.reject(error);
   }
 };

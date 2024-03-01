@@ -2,7 +2,9 @@ import { defineStore, storeToRefs } from 'pinia';
 import { makeList } from './TableStoreApi';
 import type { Ref } from 'vue';
 import type {
-  PokemonEntry,
+  apiDataLoadedType,
+  blankEntryType,
+  pokemonEntryType,
   pokemonDataType,
   dataFieldsType,
   currentDropdownsType,
@@ -10,15 +12,20 @@ import type {
   searchType,
   sortStateType,
   sortFieldType,
+  pageCountType,
+  pageNumberType,
+  currentTableLengthType,
   currentEditIndexType,
   currentEditBackupType,
   booleansType,
-  resetObjectType,
 } from './TableStoreTypes';
 import { ref, watch, onMounted } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
+  const apiDataListLength = 80;
+  const apiDataLoaded: apiDataLoadedType = ref(false);
+
   const pokemonData: pokemonDataType = ref([]); // source data
   const renderedPokemonData: pokemonDataType = ref([]); // the data rendered on screen
 
@@ -28,7 +35,11 @@ export const useTableStore = defineStore('tableStore', () => {
   const activeFilters: activeFiltersType = ref([]);
   const search: searchType = ref('');
   const sortState: sortStateType = ref('none');
-  const sortField: sortFieldType = ref('');
+  const sortField: sortFieldType = ref(undefined);
+
+  const pageCount: pageCountType = ref(20);
+  const pageNumber: pageNumberType = ref(1);
+  const currentTableLength: currentTableLengthType = ref(undefined);
 
   const currentEditIndex: currentEditIndexType = ref(undefined);
   const currentEditBackup: currentEditBackupType = ref(undefined);
@@ -42,93 +53,53 @@ export const useTableStore = defineStore('tableStore', () => {
     debugMode: false,
   });
 
-  const resetObject: resetObjectType = {};
-
   async function createPokemonList(): Promise<void> {
-    const newPokemonData = await makeList();
+    console.log('createPokemonList()');
+    const newPokemonData = await makeList(apiDataListLength);
 
-    pokemonData.value = newPokemonData;
+    pokemonData.value = cloneDeep(newPokemonData);
     renderedPokemonData.value = cloneDeep(newPokemonData);
-    console.log('*** tableStore.getPokemonApiData()');
-    console.log(pokemonData.value);
-    console.log(renderedPokemonData.value);
   }
 
   function createDataFields() {
     dataFields.value = Object.keys(pokemonData.value[0]);
   }
 
-  function createResetObject() {
-    const returnObject = {
-      currentDropdowns: currentDropdowns.value,
-      activeFilters: activeFilters.value,
-      search: search.value,
-      currentEditIndex: currentEditIndex.value,
-      currentEditBackup: currentEditBackup.value,
-    };
-
-    resetObject.value = returnObject;
+  function clearDropdowns() {
+    currentDropdowns.value.fill([''], 0, dataFields.value.length);
   }
 
-  function resetValue(name: string) {
-    if (name === 'currentDropdowns') {
-      () => currentDropdowns.value.fill('', 0, dataFields.value.length);
-    } else if (name === 'activeFilters') {
-      () => activeFilters.value.fill('', 0, dataFields.value.length);
-    } else if (name === 'search') {}
-    else if (name === 'currentEditIndex') {
+  function clearActiveFilters() {
+    activeFilters.value.fill('', 0, dataFields.value.length);
+  }
 
+  function clearSearch() {
+    search.value = '';
+  }
+
+  function clearCurrentEditIndex() {
+    currentEditIndex.value = undefined;
+  }
+
+  function clearCurrentEditBackup() {
+    currentEditBackup.value = undefined;
+  }
+
+  function clearAll() {
+    clearActiveFilters();
+    clearSearch();
+    clearCurrentEditIndex();
+    clearCurrentEditBackup();
+
+    if (getBoolean('oldEntryEdit')) {
+      restoreEntry();
+    } else if (getBoolean('newEntryEdit')) {
+      deleteEntry(currentEditIndex.value as number);
     }
-    else if (name === 'currentEditBackup') {
-    }
-    
-    // start her!
-
-    const resetObjectIndex = {
-      currentDropdowns: () => currentDropdowns.value.fill('', 0, dataFields.value.length),
-      activeFilters: () => activeFilters.value.fill('', 0, dataFields.value.length),
-      search: () => (search.value = ''),
-      currentEditIndex: () => (currentEditIndex.value = undefined),
-      currentEditBackup: () => (currentEditBackup.value = undefined),
-    };
-
-    if (name === 'all') {
-      console.log('all accessed');
-      const functionNames = Object.keys(resetObjectIndex);
-      for (const element in functionNames) {
-        resetObjectIndex[element];
-      }
-      return;
-    }
-
-    resetObjectIndex[name];
-
-    switch (name) {
-      case 'currentDropdowns':
-        currentDropdowns.value.fill('', 0, dataFields.value.length);
-        break;
-      case 'activeFilters':
-        activeFilters.value.fill('', 0, dataFields.value.length);
-        break;
-      case 'search':
-        search.value = '';
-        break;
-      case 'currentEditIndex':
-        currentEditIndex.value = undefined;
-        break;
-      case 'currentEditBackup':
-        currentEditBackup.value = undefined;
-        break;
-      default:
-        console.log('Case switch defaulted');
-        break;
-    }
-
-    resetObjectIndex[index];
   }
 
   function fillArrays(number: number) {
-    currentDropdowns.value.fill('', 0, number);
+    currentDropdowns.value.fill([''], 0, number);
     activeFilters.value.fill('', 0, number);
   }
 
@@ -144,35 +115,37 @@ export const useTableStore = defineStore('tableStore', () => {
     return activeFilters.value.some((index) => index !== '');
   }
 
-  function sortTable(key: string): void {
-    if (sortField.value && key !== sortField.value) {
+  function sortTable(data: Array<pokemonEntryType>, key: keyof dataFieldsType) {
+    console.log('sortTable()');
+    if (!sortField) {
+      return
+    }
+
+    if (key !== sortField.value) {
       sortState.value = 'none';
-      renderedPokemonData.value = pokemonData.value;
     }
 
     sortField.value = key;
 
     switch (sortState.value) {
       case 'none':
-        renderedPokemonData.value = sortBy(renderedPokemonData.value, key);
+        data = sortBy(data, key);
         sortState.value = 'ascending';
         break;
       case 'ascending':
-        renderedPokemonData.value = sortBy(renderedPokemonData.value.reverse());
+        data = sortBy(data.reverse());
         sortState.value = 'descending';
         break;
       case 'descending':
-        renderedPokemonData.value = sortBy(renderedPokemonData.value, 'pokedexIndex');
+        data = sortBy(data, 'pokedexIndex');
         sortState.value = 'none';
+        sortField.value = undefined;
         break;
     }
-
-    console.log(renderedPokemonData.value);
+    return data;
   }
 
   function sortIcon(field: string): string {
-    console.log('sortStateIcon()');
-
     const icons = {
       none: '&#8693;',
       ascending: '&#8648;',
@@ -186,11 +159,9 @@ export const useTableStore = defineStore('tableStore', () => {
     }
   }
 
-  function filterListByFilters(data: Array<PokemonEntry>): Array<PokemonEntry> {
-    console.log('filterListByFilters()');
-
+  function filterListByFilters(data: Array<pokemonEntryType>): Array<pokemonEntryType> {
     const currentFilters = activeFilters.value;
-    let filteredArray: Array<PokemonEntry> = [];
+    let filteredArray: Array<pokemonEntryType> = [];
 
     for (let i = 0; i < data.length; i++) {
       const values = Object.values(data[i]);
@@ -208,9 +179,7 @@ export const useTableStore = defineStore('tableStore', () => {
     return filteredArray;
   }
 
-  function filterListBySearch(data: Array<PokemonEntry>) {
-    console.log('filterListBySearch(): ' + search.value);
-
+  function filterListBySearch(data: Array<pokemonEntryType>) {
     const searchInput = search.value;
     let filteredArray = [];
 
@@ -228,39 +197,46 @@ export const useTableStore = defineStore('tableStore', () => {
     return filteredArray;
   }
 
-  function searchFunction() {
-    console.log('searchFunction()');
+  function condenseDataToPage(data: Array<pokemonEntryType>) {
+    let newArray: Array<pokemonEntryType> = [];
 
-    let currentPokemonList = pokemonData.value as Array<PokemonEntry>;
-    console.log('pre checkFilters(): ');
-    console.log(currentPokemonList);
+    let loopStart = pageCount.value * pageNumber.value - pageCount.value;
+    let loopEnd =
+      loopStart + pageCount.value > data.length ? data.length : loopStart + pageCount.value;
+
+    for (loopStart; loopStart < loopEnd; loopStart++) {
+      newArray.push(data[loopStart]);
+    }
+
+    return newArray;
+  }
+
+  function refreshTable(sortKey: undefined | keyof dataFieldsType = undefined): void {
+    console.log('refreshTable()');
+
+    let currentPokemonList = cloneDeep(pokemonData.value) as Array<pokemonEntryType>;
+    renderedPokemonData.value = [];
 
     if (checkFilters()) {
       currentPokemonList = filterListByFilters(currentPokemonList);
     }
-    console.log('pre checkSearch(): ');
-    console.log(currentPokemonList);
-
     if (checkSearch()) {
       currentPokemonList = filterListBySearch(currentPokemonList);
     }
 
-    console.log('searchfunction() end: ');
+    if (sortKey) {
+      currentPokemonList = sortTable(currentPokemonList, sortKey as keyof dataFieldsType) as Array<pokemonEntryType>;
+    } else {
+      currentPokemonList = sortTable(currentPokemonList, sortField.value as keyof dataFieldsType) as Array<pokemonEntryType>;
+    }
 
-    console.log(currentPokemonList);
+    currentTableLength.value = currentPokemonList.length;
+
+    if (currentPokemonList.length > pageCount.value) {
+      currentPokemonList = condenseDataToPage(currentPokemonList);
+    }
+
     renderedPokemonData.value = currentPokemonList;
-  }
-  function getPokemonData(): Array<PokemonEntry | undefined> {
-    console.log('*** tableStore.getPokemonData()');
-
-    return pokemonData.value as Array<PokemonEntry>;
-  }
-
-  function getPokemonDataKeys(): Array<String> {
-    console.log('*** tableStore.getPokemonDataKeys()');
-
-    const pokemonKeys = Object.keys(pokemonData.value[0]);
-    return pokemonKeys;
   }
 
   function dropdownMapping() {
@@ -268,12 +244,15 @@ export const useTableStore = defineStore('tableStore', () => {
 
     renderedPokemonData.value.forEach((element) => {
       Object.values(element).forEach((value, index) => {
-        console.log('adding: ' + value);
+        if (typeof value === 'string' && (value as string).includes(',')) {
+          const copy = value;
+        }
+
         filteredDropdowns[index].add(value);
       });
     });
 
-    currentDropdowns.value = filteredDropdowns.map((element) => sortBy([...element]));
+    currentDropdowns.value = filteredDropdowns.map((element) => sortBy([...element])) as string[][];
   }
 
   function getSearch(): string {
@@ -292,7 +271,7 @@ export const useTableStore = defineStore('tableStore', () => {
    * Buttons
    */
 
-  function clearFilterButton(index: number): void {
+  function clearActiveFiltersButton(index: number): void {
     activeFilters.value[index] = '';
   }
 
@@ -301,72 +280,150 @@ export const useTableStore = defineStore('tableStore', () => {
 
     if (getBoolean('newEntryEdit')) {
       pokemonData.value.splice(pokemonData.value.length - 1);
-      changeBoolean('newEntryEdit', false);
+      changeBoolean('newEntryEdit');
     } else if (getBoolean('oldEntryEdit')) {
       restoreEntry();
     }
+
+    changeBoolean('oldEntryEdit');
+    currentEditIndex.value = index;
+    currentEditBackup.value = cloneDeep(renderedPokemonData.value[index]) as pokemonEntryType;
+  }
+
+  function createBlankEntry(): void {
+    console.log('createBlankEntry()');
+    const newBlankEntry: blankEntryType = {};
+
+    for (const key in dataFields.value) {
+      newBlankEntry[key] = '';
+    }
+
+    pokemonData.value.unshift(newBlankEntry);
+    currentEditIndex.value = 0;
+    changeBoolean('newEntryEdit', true);
+  }
+
+  function deleteEntry(index: number) {
+    pokemonData.value.splice(index, 1);
+    clearCurrentEditBackup();
+    clearCurrentEditIndex();
+    changeBoolean('newEntryEdit', false);
   }
 
   function restoreEntry() {
-    const index = currentEditIndex.value;
+    pokemonData.value[currentEditIndex.value as number] =
+      currentEditBackup.value as pokemonEntryType;
+    clearCurrentEditBackup();
+    clearCurrentEditIndex();
+    changeBoolean('oldEntryEdit');
+  }
 
-    if (index !== undefined) {
-      pokemonData.value[index] = currentEditBackup.value;
-      resetInputsValue('entryEditBackup');
-      resetInputsValue('entryEditIndex');
+  function plusButton(): void {
+    if (!getBoolean('newEntryEdit') && !getBoolean('oldEntryEdit')) {
+      clearAll();
+      createBlankEntry();
     }
   }
 
-  function crossButton(): void {}
+  function crossButton(): void {
+    if (getBoolean('oldEntryEdit')) {
+      restoreEntry();
+    } else if (getBoolean('newEntryEdit')) {
+      deleteEntry(currentEditIndex.value as number);
+    }
+  }
 
-  function submitButton(): void {}
+  function submitButton(): void {
+    if (Object.values(pokemonData.value[0]).some((element) => element === '')) {
+      console.log('returning');
+      return;
+    }
 
-  onMounted(() => {
+    changeBoolean('newEntryEdit', false);
+    changeBoolean('oldEntryEdit', false);
+    clearCurrentEditBackup();
+    clearCurrentEditIndex();
+  }
+
+  function turnPage(direction: 'left' | 'right') {
+    if (currentEditStatus()) {
+      return;
+    }
+
+    if (direction === 'left') {
+      pageNumber.value === 1 ? {} : pageNumber.value--;
+    } else {
+      (currentTableLength.value as number) > pageCount.value * pageNumber.value
+        ? pageNumber.value++
+        : {};
+    }
+  }
+
+  function currentEditStatus() {
+    return currentEditIndex.value === undefined ? false : true;
+  }
+
+  onMounted(async () => {
+    await createPokemonList();
+    createDataFields();
+    clearAll();
     dropdownMapping();
-    watch(() => [search.value, activeFilters.value], searchFunction, { deep: true });
-  });
+    refreshTable();
+    apiDataLoaded.value = true;
+    console.log('-- Table component loaded --');
+    watch(
+      () => [search.value, activeFilters.value, pageNumber.value, pokemonData.value],
+      refreshTable,
+      { deep: true }
+)});
+  
+
 
   return {
+    activeFilters,
+    apiDataLoaded,
+    booleans,
+    currentDropdowns,
+    currentEditBackup,
+    currentEditIndex,
+    currentTableLength,
+    dataFields,
+    pageCount,
+    pageNumber,
     pokemonData,
     renderedPokemonData,
-    dataFields,
-    currentDropdowns,
-    activeFilters,
     search,
-    currentEditIndex,
-    currentEditBackup,
-    booleans,
-    resetObject,
-    createPokemonList,
-    createDataFields,
-    createResetObject,
-    fillArrays,
-    checkSearch,
+    sortField,
+    sortState,
+    changeBoolean,
     checkFilters,
+    checkSearch,
+    clearActiveFilters,
+    clearActiveFiltersButton,
+    clearAll,
+    clearCurrentEditBackup,
+    clearCurrentEditIndex,
+    clearDropdowns,
+    clearSearch,
+    createBlankEntry,
+    createDataFields,
+    createPokemonList,
+    crossButton,
+    currentEditStatus,
+    deleteEntry,
+    dropdownMapping,
+    fillArrays,
     filterListByFilters,
     filterListBySearch,
-    searchFunction,
-    //addBlankEntry,
-    //entryEditStatus,
-    clearFilterButton,
-    getPokemonData,
-    getPokemonDataKeys,
-    getSearch,
-    getFilters,
     getBoolean,
+    getFilters,
+    getSearch,
     modifyEntryButton,
-    changeBoolean,
-    //crossButton,
-    //deleteButton,
-    //deleteEntry,
-    dropdownMapping,
-    //resetButton,
-    resetValue,
-    //restoreEntry,
-    sortState,
-    sortField,
-    sortTable,
+    plusButton,
+    refreshTable,
+    restoreEntry,
     sortIcon,
-    //validateNewEntry,
+    submitButton,
+    turnPage,
   };
 });

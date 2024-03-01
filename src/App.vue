@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Table from './components/BaseTable.vue'
+import Table from './components/BaseTable.vue';
 import { useTableStore } from './stores/TableStore';
 
 useTableStore()
@@ -10,11 +10,11 @@ useTableStore()
 </script>
 
 <template>
-  <div>
+  <div class="app" >
     <Table></Table>
   </div>
   <main>
   </main>
 </template>
 
-<style scoped></style>
+<style src="./App.css" scoped></style>
