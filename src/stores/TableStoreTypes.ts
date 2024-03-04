@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-export type apiDataLoadedType = Ref<boolean>
+export type apiDataLoadedType = Ref<boolean | 'loading'>
 
 export type pokemonDataType = Ref<Array<pokemonEntryType | blankEntryType>>;
 

@@ -3,6 +3,11 @@ import axios from 'axios';
 import type { RawDataType, pokemonEntryType } from './TableStoreTypes';
 import { capitalize } from 'lodash';
 
+export const pokemonApiRange = {
+  start: 1,
+  end: 1025,
+}
+
 const getPokemonNames = async (listLength: number) => {
   // console.log('*** getPokemonNames()');
   const rawPokemonList = await axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=${listLength}`);

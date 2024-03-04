@@ -24,7 +24,7 @@ import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
   const apiDataListLength = 80;
-  const apiDataLoaded: apiDataLoadedType = ref(false);
+  const apiDataLoaded: apiDataLoadedType = ref(undefined);
 
   const pokemonData: pokemonDataType = ref([]); // source data
   const renderedPokemonData: pokemonDataType = ref([]); // the data rendered on screen
@@ -37,7 +37,7 @@ export const useTableStore = defineStore('tableStore', () => {
   const sortState: sortStateType = ref('none');
   const sortField: sortFieldType = ref(undefined);
 
-  const pageCount: pageCountType = ref(20);
+  const pageCount: pageCountType = ref(35);
   const pageNumber: pageNumberType = ref(1);
   const currentTableLength: currentTableLengthType = ref(undefined);
 
@@ -55,6 +55,8 @@ export const useTableStore = defineStore('tableStore', () => {
 
   async function createPokemonList(): Promise<void> {
     console.log('createPokemonList()');
+    apiDataLoaded.value = 'loading';
+
     const newPokemonData = await makeList(apiDataListLength);
 
     pokemonData.value = cloneDeep(newPokemonData);
