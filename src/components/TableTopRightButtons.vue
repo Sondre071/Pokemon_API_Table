@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
-import SmallSpinner from "./common/SmallSpinner.vue"
+import SmallSpinner from './common/SmallSpinner.vue';
 import { ref } from 'vue';
 import { computed } from 'vue';
 
@@ -12,11 +12,10 @@ const interactColors = {
 };
 
 const hoverState = ref({
-
-})
-
-const dataNameDisplay = computed(() => {
-  return store.apiState.status === 'loaded' ? store.apiState.name : 'Fetch data';
+  statusText: computed(() => {
+    return store.apiState.status === 'loaded' ? store.apiState.name : 'Fetch data';
+  }),
+  isHovering: false,
 });
 
 async function makeApiCall() {
@@ -28,31 +27,64 @@ async function makeApiCall() {
   store.apiState.status = 'loaded';
 }
 
+// start her! fiks på dropdown!
+
 </script>
 
 <template lang="">
   <div>
-    <div class="title">
-      <template v-if="store.apiState.status === 'loading'">
-        <div class='spinner' >
-          <SmallSpinner></SmallSpinner>
-        </div>
-      </template>
-      <template v-else
-        >
-        <div class=dropdown-hover @mouseenter= ><span>{{ dataNameDisplay }}</span>
-        <i class="bi bi-chevron-down"></i>
-        </div>
-        </template
-      >
+    <div class="wrapper">
+      <div>
+        <template v-if="store.apiState.status === 'loading'">
+          <div class="spinner">
+            <SmallSpinner></SmallSpinner>
+          </div>
+        </template>
+
+        <template v-else>
+          <div
+            @mouseenter="hoverState.isHovering = true"
+            @mouseleave="hoverState.isHovering = false"
+          >
+            <div class="title">
+              <span>{{ hoverState.statusText }}</span>
+              <i class="bi bi-chevron-down"></i>
+            </div>
+
+            <div class="dropdown-wrapper" :class="{ 'dropdown-visible' : hoverState.isHovering }">
+              <div class="dropdown-buttons">HEYYHF</div>
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
-    <hr v-if="store.apiState.status === 'loaded'" >
+    <hr v-if="store.apiState.status === 'loaded'" />
   </div>
 </template>
 
 <style scoped>
-.dropdown-hover {
-  
+.dropdown-wrapper {
+  visibility: hidden;
+  margin-left: 3%;
+  text-align: center;
+  position: absolute;
+  padding-top: 10px;
+}
+
+.dropdown-visible {
+  visibility: visible;
+}
+
+.dropdown-inner-wrapper {
+
+  position: static;
+  padding-top: 10px;
+}
+
+.dropdown-buttons {
+  padding: 10px;
+  background-color: #2544f7f1;
+  border: solid white 1px;
 }
 
 .spinner {
@@ -67,7 +99,7 @@ async function makeApiCall() {
 
   transition: color 0.4s;
   color: white;
-  margin-top: 2.2vh;
+  margin-top: 1.5vh;
 }
 
 .title i {
