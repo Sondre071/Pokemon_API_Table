@@ -1,12 +1,7 @@
-import { ref } from 'vue';
+import type { makeListType } from './TableStoreApiTypes';
 import axios from 'axios';
 import type { RawDataType, pokemonEntryType } from './TableStoreTypes';
 import { capitalize } from 'lodash';
-
-export const pokemonApiRange = {
-  start: 1,
-  end: 1025,
-}
 
 const getPokemonNames = async (listLength: number) => {
   // console.log('*** getPokemonNames()');
@@ -83,22 +78,25 @@ const createPokemonList = async (listLength: number): Promise<Array<pokemonEntry
   }
 };
 
-export const makeList = async (listLength: number): Promise<Array<pokemonEntryType>> => {
+export const makeList = async (listLength: number): makeListType => {
   // console.log('*** makeList()');
   try {
     // console.log('*-- makeList() try block');
 
     let pokemonList: Array<pokemonEntryType> = [];
-    let tempList = await createPokemonList(listLength);
+    let returnArray = await createPokemonList(listLength);
 
-    tempList.forEach((element) => {
+    returnArray.forEach((element) => {
       // console.log('pushing ' + element.name + ' to pokemonList');
       pokemonList.push(element);
     });
 
-    // console.log('pokemonList pushing part done successfully!' + pokemonList);
+    const returnObject = {
+      name: 'Poke API',
+      data: returnArray
+    }
 
-    return pokemonList;
+    return returnObject;
   } catch (error) {
     // console.log(error);
     return Promise.reject(error);
