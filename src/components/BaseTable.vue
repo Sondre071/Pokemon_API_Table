@@ -1,21 +1,40 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
-import TableTitleSection from "./TableTitleSection.vue";
-import TableButtons from "./TableButtons.vue"
+import { ref } from 'vue';
 
+const checkboxArray = ref([]);
 
 const store = useTableStore();
+
+function checkAllBoxes() {
+
+}
+
+function deleteCheckmarked() {
+  const deleteList = checkboxArray.value
+    .reduce((indexes: Array<number>, currentValue, currentIndex: number) => {
+      if (currentValue === true) {
+        indexes.push(currentIndex);
+      }
+      return indexes;
+    }, [])
+    .reverse();
+
+  for (const index of deleteList) {
+    console.log(index);
+    store.deleteEntry(index);
+  }
+
+  checkboxArray.value = [];
+}
 </script>
 
 <template lang="">
   <div>
-    <TableTitleSection></TableTitleSection>
-    <TableButtons></TableButtons>
     <div>
       <table>
         <thead>
           <tr>
-            <th>x</th>
             <th
               class=""
               :class="{
@@ -24,21 +43,26 @@ const store = useTableStore();
               }"
               v-for="(field, index) in store.dataFields"
             >
-              {{ field }}
+            <span v-if="field !== 'checkbox'" >{{ field }}
               <button
                 :key="field"
                 :class="{
                   interactable: !store.currentEditStatus(),
                   fade: store.currentEditStatus(),
                 }"
-                class="sort-button icon"
+                class="icon"
                 @click="!store.currentEditStatus() ? store.refreshTable(field) : {}"
                 aria-label="Sort Icon"
               >
                 <span v-html="store.sortIcon(field)"></span>
               </button>
-              <div v-show="store.getBoolean('filterMode')" class="dropdowns-container">
-                <div class="dropdowns">
+            </span>
+            <input v-else type="checkbox"></input>
+              
+              
+              
+              <div v-show="store.getBoolean('filterMode')" class="">
+                <div class="">
                   <select
                     v-model="store.activeFilters[index]"
                     :disabled="store.currentEditIndex !== undefined"
@@ -62,34 +86,29 @@ const store = useTableStore();
                 </div>
               </div>
             </th>
-            <th class="filler-header" colspan="2"></th>
+            <th class="" colspan="2"></th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(item, index) in store.renderedPokemonData">
-            <td>x</td>
             <template v-if="store.currentEditIndex === index">
               <td v-for="key in store.dataFields" :key="key">
-                <input type="text" name="key" v-model="store.pokemonData[index][key]" />
+                <input v-if="key !== 'checkbox'" type="text" name="key" v-model="store.pokemonData[index][key]" />
+                <input v-else type='checkbox' v-model="store.renderedPokemonData[index][key]" ></input>
               </td>
-              <td class="list-buttons">
-                <button
-                  type="submit"
-                  class="new-entry-submit icon interactable"
-                  @click="store.submitButton()"
-                >
-                  &#10003;
-                </button>
+              <td class="">
+                <button type="submit" class="" @click="store.submitButton()">&#10003;</button>
               </td>
-              <td class="list-buttons">
+              <td class="">
                 <button class="icon interactable" @click="store.crossButton()">&#10006;</button>
               </td>
             </template>
             <template v-else>
               <td v-for="key in store.dataFields" :key="key">
-                {{ item[key] }}
+                <span v-if="key !== 'checkbox'" >{{ item[key] }}</span>
+                <input v-else type='checkbox' v-model="[item][key]" ></input>
               </td>
-              <td class="list-buttons">
+              <td class="">
                 <button
                   id="pen"
                   :class="{
@@ -102,7 +121,7 @@ const store = useTableStore();
                   &#9998;
                 </button>
               </td>
-              <td class="list-buttons">
+              <td class="">
                 <button
                   id="trash-can"
                   :class="{
@@ -121,7 +140,36 @@ const store = useTableStore();
 </template>
 
 <style scoped>
-.top-section {
-  display: inline-block;
+
+
+table {
+  width: 100%;
+  border-spacing: 0px 4px;
+}
+
+
+thead {
+  height: 50%;
+
+}
+
+thead tr {
+  background-color: #2545f71b;
+  border: none;
+  height: 40px;
+  border-radius: 20px;
+}
+
+tbody tr {
+  background-color: #2545f71b;
+  height: 38px;
+  border-radius: 20px;
+}
+
+
+
+.icon {
+  border: none;
+  background: transparent;
 }
 </style>

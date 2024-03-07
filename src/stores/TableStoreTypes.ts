@@ -44,6 +44,7 @@ export type RawDataType = {
 };
 
 export type pokemonEntryType = {
+  checkbox: string | boolean;
   name: string;
   types: string;
   height: number;

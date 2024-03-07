@@ -41,6 +41,7 @@ const getIndividualPokemonData = async (pokemonName: string, index: number) => {
   const pokemonIndex = index;
   // optional: abilities,
   const pokemonObject = {
+    checkbox: '',
     name: capitalize(pokemonName),
     types: pokemonTypes,
     height: pokemonHeight,
@@ -70,7 +71,7 @@ const createPokemonList = async (listLength: number): Promise<Array<pokemonEntry
     }
     // console.log('Loops done. Full list so far: ');
     // console.log(tempPokemonList);
-    // console.log('*** createPokemonList() done. returning: ' + tempPokemonList);
+    // conle.log('*** createPokemonList() done. returning: ' + tempPokemonList);
     return tempPokemonList;
   } catch (error) {
     // console.log(error);
@@ -93,8 +94,8 @@ export const makeList = async (listLength: number): makeListType => {
 
     const returnObject = {
       name: 'Poke API',
-      data: returnArray
-    }
+      data: returnArray,
+    };
 
     return returnObject;
   } catch (error) {

@@ -1,13 +1,20 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+</script>
 
 <template>
   <div>
-    <div class="title" ><h3>Table</h3></div>
+    <div class="wrapper">
+        <div class="title"><p>Table</p></div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-  .title {
-    margin-left: 10px;
-  }
+.wrapper {
+}
+
+.title {
+  margin-left: 10px;
+  font-size: 18px;
+}
 </style>

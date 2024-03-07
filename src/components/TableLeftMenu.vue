@@ -1,45 +1,47 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
-import { ref } from 'vue';
+import TableFetchApiDataDropdown from './TableFetchApiDataDropdown.vue'
+import DebugPanel from './TableDebugPanel.vue'
 
 const store = useTableStore();
-
-function flipApiState() {
-  store.apiState.status = store.apiState.status === 'loaded' ? 'loading': 'loaded';
-}
-
 
 </script>
 
 <template lang="">
   <div>
-  <div class="wrapper" >
-    <header>
-      <h1>Sondres API greie!</h1>
-    </header>
-    <hr>
-    <div class="actions-menu" >
-      <p class=actions-menu-button >test</p>
-        <p class="actions-menu-button" >test</p>
-        <button class="actions-menu-button" @click="flipApiState()" >
-            LOADING TEST
-          </button>
+    <div class="wrapper">
+      <header>
+        <h1>Sondres API greie!</h1>
+      </header>
+      
+        
+      
+      <div class="actions-menu">
+        <TableFetchApiDataDropdown class="action-button-api"></TableFetchApiDataDropdown>
+        <!--
+        <hr>
+          -->
+        <p class="actions-menu-button" @click="store.clearAll()" >Reset table</p>
+        <p @click="store.changeBoolean('debugMode')" class='interactable' >Debug panel</p>
+      </div>
     </div>
-    
-
-    
-    
+    <DebugPanel class="debug-panel" ></DebugPanel>
   </div>
-</div>
 </template>
 
 <style scoped>
+.wrapper {
+  color: white;
+}
 
 hr {
-  width: 60%;
+  position: relative;
+  right: 25%;
+  width: 50%;
   height: 1px;
   color: white;
   background-color: white;
+  margin-bottom: 14px;
 }
 
 header {
@@ -47,11 +49,11 @@ header {
   justify-content: center;
   text-align: center;
   margin-top: 4px;
+  border-bottom: white 3px solid;
 
   h1 {
     font-size: 23px;
   }
-
 }
 
 .header-image {
@@ -64,28 +66,27 @@ header {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  height: 100%;
 }
 
 .actions-menu-button {
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: 9px;
+  margin-bottom: 9px;
+  cursor: pointer;
 }
 
-.dropdown-1 {
-  position: absolute;
-  z-index: 1;
-  background-color: gray;
-  min-width: 7vw;
+.action-button-api {
+  position: relative;
+  bottom: 20px;
+  margin-bottom: 20px;
 }
 
-.dropdown-fields {
-  padding: 6px;
+.debug-panel {
+  margin-left: 20px;
 }
 
-.dropdown-list {
-    display: inline-block;
+.interactable {
+  cursor: pointer;
 }
-
-
 
 </style>

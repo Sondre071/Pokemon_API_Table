@@ -127,21 +127,24 @@ export const useTableStore = defineStore('tableStore', () => {
     return activeFilters.value.some((index) => index !== '');
   }
 
-  function sortTable(data: Array<pokemonEntryType>, key: keyof dataFieldsType) {
+  function sortTable(data: Array<pokemonEntryType>, sortKey: keyof dataFieldsType) {
     console.log('sortTable()');
     if (!sortField) {
       return;
     }
-
-    if (key !== sortField.value) {
+    
+    if (sortKey !== sortField.value) {
+      console.log("sortTable(9 returning early")
       sortState.value = 'none';
     }
+    sortField.value = typeof sortKey === 'string' ? sortKey: undefined;
+    // sortKey er et array on boot av en eller annen grunn, dette er en fiks for det.
 
-    sortField.value = key;
+
 
     switch (sortState.value) {
       case 'none':
-        data = sortBy(data, key);
+        data = sortBy(data, sortKey);
         sortState.value = 'ascending';
         break;
       case 'ascending':
@@ -154,6 +157,7 @@ export const useTableStore = defineStore('tableStore', () => {
         sortField.value = undefined;
         break;
     }
+
     return data;
   }
 
@@ -222,6 +226,10 @@ export const useTableStore = defineStore('tableStore', () => {
 
     return newArray;
   }
+  
+    // start her!
+    // fjern renderedPokeemonData, hver entry skal være real.
+
 
   function refreshTable(sortKey: undefined | keyof dataFieldsType = undefined): void {
     console.log('refreshTable()');
@@ -236,17 +244,19 @@ export const useTableStore = defineStore('tableStore', () => {
       currentPokemonList = filterListBySearch(currentPokemonList);
     }
 
+    
+
     if (sortKey) {
-      currentPokemonList = sortTable(
-        currentPokemonList,
-        sortKey as keyof dataFieldsType,
-      ) as Array<pokemonEntryType>;
+      
+      currentPokemonList = sortTable(currentPokemonList,sortKey as keyof dataFieldsType) as Array<pokemonEntryType>;
+      
     } else {
-      currentPokemonList = sortTable(
-        currentPokemonList,
-        sortField.value as keyof dataFieldsType,
-      ) as Array<pokemonEntryType>;
+      console.log(sortKey)
+      currentPokemonList = sortTable(currentPokemonList,sortField.value as keyof dataFieldsType) as Array<pokemonEntryType>;
     }
+
+    
+    
 
     currentTableLength.value = currentPokemonList.length;
 
@@ -254,10 +264,11 @@ export const useTableStore = defineStore('tableStore', () => {
       currentPokemonList = condenseDataToPage(currentPokemonList);
     }
 
-    renderedPokemonData.value = currentPokemonList;
+    renderedPokemonData.value = cloneDeep(currentPokemonList);
   }
 
   function dropdownMapping() {
+    console.log("dropdownMapping()")
     const filteredDropdowns = dataFields.value.map(() => new Set());
 
     renderedPokemonData.value.forEach((element) => {
@@ -381,13 +392,7 @@ export const useTableStore = defineStore('tableStore', () => {
     return currentEditIndex.value === undefined ? false : true;
   }
 
-  onMounted(async () => {
-    apiState.value.name = await createPokemonList();
-    createDataFields();
-    clearAll();
-    dropdownMapping();
-    refreshTable();
-    apiState.value.status = 'loaded';
+  onMounted(() => {
     console.log('-- Table component loaded --');
     watch(
       () => [search.value, activeFilters.value, pageNumber.value, pokemonData.value],
