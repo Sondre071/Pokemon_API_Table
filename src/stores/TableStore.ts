@@ -62,8 +62,8 @@ export const useTableStore = defineStore('tableStore', () => {
 
     const newApiData = await makeList(apiDataListLength);
 
-    pokemonData.value = cloneDeep(newApiData.data);
-    renderedPokemonData.value = cloneDeep(newApiData.data);
+    pokemonData.value = newApiData.data;
+    renderedPokemonData.value = newApiData.data;
 
     return newApiData.name;
 

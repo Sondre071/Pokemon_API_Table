@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
-import TableFetchApiDataDropdown from './TableFetchApiDataDropdown.vue'
+import ApiCallDropdown from './ApiCallDropdown.vue'
 import DebugPanel from './TableDebugPanel.vue'
 
 const store = useTableStore();
@@ -17,7 +17,7 @@ const store = useTableStore();
         
       
       <div class="actions-menu">
-        <TableFetchApiDataDropdown class="action-button-api"></TableFetchApiDataDropdown>
+        <ApiCallDropdown class="action-button-api"></ApiCallDropdown>
         <!--
         <hr>
           -->

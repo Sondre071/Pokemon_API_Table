@@ -43,7 +43,7 @@ function deleteCheckmarked() {
               }"
               v-for="(field, index) in store.dataFields"
             >
-            <span v-if="field !== 'checkbox'" >{{ field }}
+            <span class="table-th" v-if="field !== 'checkbox'" >{{ field }}
               <button
                 :key="field"
                 :class="{
@@ -51,13 +51,14 @@ function deleteCheckmarked() {
                   fade: store.currentEditStatus(),
                 }"
                 class="icon"
+                id="sort-button"
                 @click="!store.currentEditStatus() ? store.refreshTable(field) : {}"
                 aria-label="Sort Icon"
               >
                 <span v-html="store.sortIcon(field)"></span>
               </button>
             </span>
-            <input v-else type="checkbox"></input>
+            <input class="table-checkbox" v-else type="checkbox"></input>
               
               
               
@@ -86,7 +87,7 @@ function deleteCheckmarked() {
                 </div>
               </div>
             </th>
-            <th class="" colspan="2"></th>
+            <th id="list-buttons-column" colspan="2"></th>
           </tr>
         </thead>
         <tbody>
@@ -97,7 +98,7 @@ function deleteCheckmarked() {
                 <input v-else type='checkbox' v-model="store.renderedPokemonData[index][key]" ></input>
               </td>
               <td class="">
-                <button type="submit" class="" @click="store.submitButton()">&#10003;</button>
+                <button type="submit" class="icon interactable" @click="store.submitButton()">&#10003;</button>
               </td>
               <td class="">
                 <button class="icon interactable" @click="store.crossButton()">&#10006;</button>
@@ -114,7 +115,7 @@ function deleteCheckmarked() {
                   :class="{
                     invisible: !store.getBoolean('manipulateTable'),
                   }"
-                  class="icon interactable"
+                  class="icon interactable list-buttons"
                   style="transform: rotate(90deg)"
                   @click="store.modifyEntryButton(index)"
                 >
@@ -127,7 +128,7 @@ function deleteCheckmarked() {
                   :class="{
                     invisible: !store.getBoolean('manipulateTable'),
                   }"
-                  class="bi bi-trash3 icon interactable"
+                  class="bi bi-trash3 icon interactable list-buttons"
                   @click="store.deleteEntry(index)"
                 ></button>
               </td>
@@ -145,25 +146,54 @@ function deleteCheckmarked() {
 table {
   width: 100%;
   border-spacing: 0px 4px;
+  text-align: center;
 }
 
-
-thead {
-  height: 50%;
-
+.table-th {
+  padding: 0 20px;
+  font-size: 16px;
 }
 
-thead tr {
-  background-color: #2545f71b;
-  border: none;
-  height: 40px;
-  border-radius: 20px;
+tbody td {
+  font-size: 15px;
+  padding-left: -15px;
+  padding-right: -15px;
 }
 
-tbody tr {
+thead tr, tbody tr {
   background-color: #2545f71b;
   height: 38px;
-  border-radius: 20px;
+}
+
+thead th:first-child, tbody td:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+thead th:last-child, tbody td:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+table #sort-button {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+table .list-buttons {
+  width: 20px;
+  padding: 0;
+  margin: 0;
+}
+
+table #list-buttons-column {
+  width: 20px;
+}
+
+table #pen {
+  font-size: 17px;
+}
+
+table #trash-can {
+  font-size: 15px;
 }
 
 

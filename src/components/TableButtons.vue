@@ -1,69 +1,94 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
+import ApiCallDropdown from './ApiCallDropdown.vue';
 
 const store = useTableStore();
 </script>
 
 <template lang="">
   <div>
-    <div class="menu">
-      <div class="search-bar-wrapper menu-element">
-        <div class="search-bar-inner">
-          <i class="bi bi-search search-bar-element"></i>
-          <input
-            type="search"
-            name="form"
-            v-model="store.search"
-            placeholder="Search"
-            aria-describedby="button-addon2"
-            class="search-bar-element search-bar-input"
-          />
-          <button class="search-bar-element search-bar-glass">x</button>
-        </div>
+    <div class="wrapper">
+      <div class="title">
+        <ApiCallDropdown></ApiCallDropdown>
       </div>
-      <button
-        id="funnel-button"
-        class="bi bi-funnel-fill menu-element icon"
-        v
-        @click="store.changeBoolean('filterMode')"
-        title="Filter by properties"
-      ></button>
-      <button
-        id="clear-button"
-        class="menu-element icon"
-        @click="store.clearAll"
-        title="Reset inputs and filters"
-      >
-        &#8634;
-      </button>
+      <div v-if="store.apiState.status === 'loaded'" class="menu">
+        <div class="search-bar-wrapper menu-element">
+          <div class="search-bar-inner">
+            <i class="bi bi-search search-bar-element"></i>
+            <input
+              type="search"
+              name="form"
+              v-model="store.search"
+              placeholder="Search"
+              aria-describedby="button-addon2"
+              class="search-bar-element search-bar-input"
+            />
+            <button class="search-bar-element" @click="store.clearSearch()">x</button>
+          </div>
+        </div>
+        <button
+          id="funnel-button"
+          class="bi bi-funnel-fill menu-element icon"
+          v
+          @click="store.changeBoolean('filterMode')"
+          title="Filter by properties"
+        ></button>
+        <button
+          id="clear-button"
+          class="menu-element icon"
+          @click="store.clearAll"
+          title="Reset inputs and filters"
+        >
+          &#8634;
+        </button>
 
-      <button
-        id="modify-entry-button"
-        class="menu-element"
-        @click="store.changeBoolean('manipulateTable')"
-        title="Modify table"
-      >
-        <i class="bi bi-wrench"></i>
-        Modify entry
-      </button>
-      <button
-        id="new-entry-button"
-        class="menu-element"
-        :class="{ interactable: store.currentEditIndex === undefined }"
-        @click="store.plusButton()"
-        title="Add new entry"
-      >
-        +&nbsp Add new entry
-      </button>
+        <button
+          id="modify-entry-button"
+          class="menu-element"
+          @click="store.changeBoolean('manipulateTable')"
+          title="Modify table"
+        >
+          <i class="bi bi-wrench"></i>
+          Modify entry
+        </button>
+        <button
+          id="new-entry-button"
+          class="menu-element"
+          :class="{ interactable: store.currentEditIndex === undefined }"
+          @click="store.plusButton()"
+          title="Add new entry"
+        >
+          +&nbsp Add new entry
+        </button>
 
-      <button class="menu-element page-turn interactable" @click="store.turnPage('left')">&lt</button>
-      <button class="menu-element page-turn interactable" @click="store.turnPage('right')">></button>
+        <button class="menu-element page-turn interactable" @click="store.turnPage('left')">
+          &lt
+        </button>
+        <button class="menu-element page-turn interactable" @click="store.turnPage('right')">
+          >
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
 .wrapper {
+  display: grid;
+  grid-template-rows: 40% 60%;
+  gap: 15px;
+}
+
+.title {
+  grid-row: 1;
+  font-size: 20px;
+  text-align: center;
+  height: 100%;
+}
+
+.menu {
+  grid-row: 2;
+  height: calc(100% - 15px);
   display: flex;
   align-items: center;
 }
@@ -101,13 +126,13 @@ const store = useTableStore();
 }
 
 .page-turn {
-  position: relative;
-  top: 11px;
-  left: calc(100% - 680px);
   width: 25px;
   height: 25px;
   font-size: 16px;
   border-radius: 4px;
+  left: calc(100% - 694px);
+  top: 4px;
+  position: relative;
 }
 
 .interactable {

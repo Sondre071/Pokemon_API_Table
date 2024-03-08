@@ -19,11 +19,10 @@
 .grid-inner-wrapper {
   display: grid;
   width: calc(100% - 40px);
-  height: calc(100% - 60px);
+  height: calc(100% - 40px);
   grid-template-columns: 100%;
-  grid-template-rows: 10% 80% 10%;
+  grid-template-rows: 10% 86% 4%;
   margin-left: 20px;
-  row-gap: 15px;
 }
 
 .grid-item {
@@ -49,16 +48,6 @@
   grid-row: 1;
 }
 
-.table-top-area-wrapper {
-  height: 100%;
-  display: grid;
-  grid-template-rows: 60% 40%;
-}
-
-.top-area-title {
-  grid-row: 1;
-}
-
 .top-area-buttons {
   grid-row: 2;
 }
@@ -67,32 +56,39 @@
   grid-column: 1;
   grid-row: 2 / span 3;
 
-  height: 100%;
+  height: calc(100% - 10px);
+  margin-top: 4px;
   overflow: hidden;
 }
 
-.grid-inner-table {
+.table-inner-table {
+  margin-right: 20px;
+}
+
+.grid-table-inner {
   height: 93%;
   overflow-y: scroll;
   scrollbar-gutter: stable;
 }
 
-.grid-inner-table::-webkit-scrollbar {
+.grid-table-inner::-webkit-scrollbar {
   width: 18px;
+  
 }
 
-.grid-inner-table::-webkit-scrollbar-track {
+.grid-table-inner::-webkit-scrollbar-track {
   background-color: #e4e4e4;
   border-radius: 3px;
+  
 }
 
-.grid-inner-table::-webkit-scrollbar-thumb {
+.grid-table-inner::-webkit-scrollbar-thumb {
   border-radius: 3px;
   border-left: 0;
   border-right: 0;
   background-color: #2545f795;
 }
 
-.grid-inner-table-nav {
+.grid-table-inner-nav {
   height: 7%;
 }

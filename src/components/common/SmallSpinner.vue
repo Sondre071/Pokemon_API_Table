@@ -5,7 +5,7 @@
 
 <template lang="">
   <div class="wrapper" >
-    <span class="loader"></span>
+    <p class="loader"></p>
   </div>
 </template>
 

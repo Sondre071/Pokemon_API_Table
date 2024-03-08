@@ -16,14 +16,13 @@ const store = useTableStore();
     <div class="grid-outer-wrapper">
       <TableLeftMenu class="left-menu"></TableLeftMenu>
       <div class="grid-inner-wrapper">
-        <div class="grid-table-top-area ">
-          <div class="table-top-area-wrapper " >
-            <TableTitleSection class="grid-item top-area-title"></TableTitleSection>
-            <TableButtons class="grid-item top-area-buttons"></TableButtons>
-          </div>
+        <div class=" grid-item grid-table-top-area">
+            <TableButtons class="top-area-buttons"></TableButtons>
         </div>
         <div v-if="store.apiState.status === 'loaded'" class="grid-item grid-table-outer">
-          <BaseTable class="grid-inner-table inner-item"></BaseTable>
+          <div class="grid-table-inner inner-item">
+              <BaseTable class="table-inner-table"></BaseTable>
+          </div>
           <TableNav class="grid-inner-table-nav inner-item"></TableNav>
         </div>
         <div v-if="store.apiState.status === 'loading'" class="grid-item grid-table-outer">
