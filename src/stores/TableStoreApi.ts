@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import type { makeListType } from './TableStoreApiTypes';
 import axios from 'axios';
 import type { RawDataType, pokemonEntryType } from './TableStoreTypes';
 import { capitalize } from 'lodash';
@@ -41,6 +41,7 @@ const getIndividualPokemonData = async (pokemonName: string, index: number) => {
   const pokemonIndex = index;
   // optional: abilities,
   const pokemonObject = {
+    checkbox: '',
     name: capitalize(pokemonName),
     types: pokemonTypes,
     height: pokemonHeight,
@@ -70,7 +71,7 @@ const createPokemonList = async (listLength: number): Promise<Array<pokemonEntry
     }
     // console.log('Loops done. Full list so far: ');
     // console.log(tempPokemonList);
-    // console.log('*** createPokemonList() done. returning: ' + tempPokemonList);
+    // conle.log('*** createPokemonList() done. returning: ' + tempPokemonList);
     return tempPokemonList;
   } catch (error) {
     // console.log(error);
@@ -78,22 +79,25 @@ const createPokemonList = async (listLength: number): Promise<Array<pokemonEntry
   }
 };
 
-export const makeList = async (listLength: number): Promise<Array<pokemonEntryType>> => {
+export const makeList = async (listLength: number): makeListType => {
   // console.log('*** makeList()');
   try {
     // console.log('*-- makeList() try block');
 
     let pokemonList: Array<pokemonEntryType> = [];
-    let tempList = await createPokemonList(listLength);
+    let returnArray = await createPokemonList(listLength);
 
-    tempList.forEach((element) => {
+    returnArray.forEach((element) => {
       // console.log('pushing ' + element.name + ' to pokemonList');
       pokemonList.push(element);
     });
 
-    // console.log('pokemonList pushing part done successfully!' + pokemonList);
+    const returnObject = {
+      name: 'Poke API',
+      data: returnArray,
+    };
 
-    return pokemonList;
+    return returnObject;
   } catch (error) {
     // console.log(error);
     return Promise.reject(error);

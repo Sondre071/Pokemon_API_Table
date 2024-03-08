@@ -1,8 +1,7 @@
-import { defineStore, storeToRefs } from 'pinia';
+import { defineStore } from 'pinia';
 import { makeList } from './TableStoreApi';
-import type { Ref } from 'vue';
 import type {
-  apiDataLoadedType,
+  apiStateType,
   blankEntryType,
   pokemonEntryType,
   pokemonDataType,
@@ -24,7 +23,11 @@ import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
   const apiDataListLength = 80;
-  const apiDataLoaded: apiDataLoadedType = ref(false);
+
+  const apiState: apiStateType = ref({
+    name: "none",
+    status: "none",
+  })
 
   const pokemonData: pokemonDataType = ref([]); // source data
   const renderedPokemonData: pokemonDataType = ref([]); // the data rendered on screen
@@ -37,7 +40,7 @@ export const useTableStore = defineStore('tableStore', () => {
   const sortState: sortStateType = ref('none');
   const sortField: sortFieldType = ref(undefined);
 
-  const pageCount: pageCountType = ref(20);
+  const pageCount: pageCountType = ref(35);
   const pageNumber: pageNumberType = ref(1);
   const currentTableLength: currentTableLengthType = ref(undefined);
 
@@ -53,12 +56,17 @@ export const useTableStore = defineStore('tableStore', () => {
     debugMode: false,
   });
 
-  async function createPokemonList(): Promise<void> {
+  async function createPokemonList(): Promise<string> {
     console.log('createPokemonList()');
-    const newPokemonData = await makeList(apiDataListLength);
+    apiState.value.status = 'loading';
 
-    pokemonData.value = cloneDeep(newPokemonData);
-    renderedPokemonData.value = cloneDeep(newPokemonData);
+    const newApiData = await makeList(apiDataListLength);
+
+    pokemonData.value = newApiData.data;
+    renderedPokemonData.value = newApiData.data;
+
+    return newApiData.name;
+
   }
 
   function createDataFields() {
@@ -107,6 +115,10 @@ export const useTableStore = defineStore('tableStore', () => {
     booleans.value[str] = setToggle === undefined ? !booleans.value[str] : setToggle;
   }
 
+  function apiLoadedStatus() {
+
+  }
+
   function checkSearch(): boolean {
     return search.value !== '';
   }
@@ -115,21 +127,24 @@ export const useTableStore = defineStore('tableStore', () => {
     return activeFilters.value.some((index) => index !== '');
   }
 
-  function sortTable(data: Array<pokemonEntryType>, key: keyof dataFieldsType) {
+  function sortTable(data: Array<pokemonEntryType>, sortKey: keyof dataFieldsType) {
     console.log('sortTable()');
     if (!sortField) {
-      return
+      return;
     }
-
-    if (key !== sortField.value) {
+    
+    if (sortKey !== sortField.value) {
+      console.log("sortTable(9 returning early")
       sortState.value = 'none';
     }
+    sortField.value = typeof sortKey === 'string' ? sortKey: undefined;
+    // sortKey er et array on boot av en eller annen grunn, dette er en fiks for det.
 
-    sortField.value = key;
+
 
     switch (sortState.value) {
       case 'none':
-        data = sortBy(data, key);
+        data = sortBy(data, sortKey);
         sortState.value = 'ascending';
         break;
       case 'ascending':
@@ -142,6 +157,7 @@ export const useTableStore = defineStore('tableStore', () => {
         sortField.value = undefined;
         break;
     }
+
     return data;
   }
 
@@ -210,6 +226,10 @@ export const useTableStore = defineStore('tableStore', () => {
 
     return newArray;
   }
+  
+    // start her!
+    // fjern renderedPokeemonData, hver entry skal være real.
+
 
   function refreshTable(sortKey: undefined | keyof dataFieldsType = undefined): void {
     console.log('refreshTable()');
@@ -224,11 +244,19 @@ export const useTableStore = defineStore('tableStore', () => {
       currentPokemonList = filterListBySearch(currentPokemonList);
     }
 
+    
+
     if (sortKey) {
-      currentPokemonList = sortTable(currentPokemonList, sortKey as keyof dataFieldsType) as Array<pokemonEntryType>;
+      
+      currentPokemonList = sortTable(currentPokemonList,sortKey as keyof dataFieldsType) as Array<pokemonEntryType>;
+      
     } else {
-      currentPokemonList = sortTable(currentPokemonList, sortField.value as keyof dataFieldsType) as Array<pokemonEntryType>;
+      console.log(sortKey)
+      currentPokemonList = sortTable(currentPokemonList,sortField.value as keyof dataFieldsType) as Array<pokemonEntryType>;
     }
+
+    
+    
 
     currentTableLength.value = currentPokemonList.length;
 
@@ -236,10 +264,11 @@ export const useTableStore = defineStore('tableStore', () => {
       currentPokemonList = condenseDataToPage(currentPokemonList);
     }
 
-    renderedPokemonData.value = currentPokemonList;
+    renderedPokemonData.value = cloneDeep(currentPokemonList);
   }
 
   function dropdownMapping() {
+    console.log("dropdownMapping()")
     const filteredDropdowns = dataFields.value.map(() => new Set());
 
     renderedPokemonData.value.forEach((element) => {
@@ -363,25 +392,18 @@ export const useTableStore = defineStore('tableStore', () => {
     return currentEditIndex.value === undefined ? false : true;
   }
 
-  onMounted(async () => {
-    await createPokemonList();
-    createDataFields();
-    clearAll();
-    dropdownMapping();
-    refreshTable();
-    apiDataLoaded.value = true;
+  onMounted(() => {
     console.log('-- Table component loaded --');
     watch(
       () => [search.value, activeFilters.value, pageNumber.value, pokemonData.value],
-      refreshTable,
-      { deep: true }
-)});
-  
-
+        refreshTable as any,
+      { deep: true },
+    );
+  });
 
   return {
     activeFilters,
-    apiDataLoaded,
+    apiState,
     booleans,
     currentDropdowns,
     currentEditBackup,

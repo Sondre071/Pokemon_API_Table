@@ -1,4 +1,94 @@
 .app {
-    min-height: 100%;
-    display: grid;
+  margin: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-outer-wrapper {
+  width: 72%;
+  height: 95vh;
+  background-color: rgb(246, 246, 246, 0.75);
+  box-sizing: border-box;
+  box-shadow: 4px 4px 8px 4px rgba(0, 0, 0, 0.13);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: row;
+}
+
+.grid-inner-wrapper {
+  display: grid;
+  width: calc(100% - 40px);
+  height: calc(100% - 40px);
+  grid-template-columns: 100%;
+  grid-template-rows: 10% 86% 4%;
+  margin-left: 20px;
+}
+
+.grid-item {
+  border-radius: 3px;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.inner-item {
+  padding: 0;
+  margin: 0;
+}
+
+.left-menu {
+  width: 20%;
+  border-radius: 22px 3px 3px 22px;
+  background-color: #2544f7f1;
+  color: white;
+}
+
+.grid-table-top-area {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.top-area-buttons {
+  grid-row: 2;
+}
+
+.grid-table-outer {
+  grid-column: 1;
+  grid-row: 2 / span 3;
+
+  height: calc(100% - 10px);
+  margin-top: 4px;
+  overflow: hidden;
+}
+
+.table-inner-table {
+  margin-right: 20px;
+}
+
+.grid-table-inner {
+  height: 93%;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+}
+
+.grid-table-inner::-webkit-scrollbar {
+  width: 18px;
+  
+}
+
+.grid-table-inner::-webkit-scrollbar-track {
+  background-color: #e4e4e4;
+  border-radius: 3px;
+  
+}
+
+.grid-table-inner::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  border-left: 0;
+  border-right: 0;
+  background-color: #2545f795;
+}
+
+.grid-table-inner-nav {
+  height: 7%;
 }

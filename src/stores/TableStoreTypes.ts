@@ -1,5 +1,8 @@
 import type { Ref } from 'vue';
-export type apiDataLoadedType = Ref<boolean>
+export type apiStateType = Ref<{
+  name: string;
+  status: 'none' | 'loading' | 'loaded' | 'error';
+}>;
 
 export type pokemonDataType = Ref<Array<pokemonEntryType | blankEntryType>>;
 
@@ -14,9 +17,9 @@ export type sortFieldType = Ref<keyof dataFieldsType | undefined>;
 export type currentEditIndexType = Ref<undefined | number>;
 export type currentEditBackupType = Ref<undefined | pokemonEntryType>;
 
-export type pageCountType = Ref<number>
-export type pageNumberType = Ref<number>
-export type currentTableLengthType = Ref<number | undefined>
+export type pageCountType = Ref<number>;
+export type pageNumberType = Ref<number>;
+export type currentTableLengthType = Ref<number | undefined>;
 
 export type booleansType = Ref<{
   [key: string]: boolean;
@@ -41,6 +44,7 @@ export type RawDataType = {
 };
 
 export type pokemonEntryType = {
+  checkbox: string | boolean;
   name: string;
   types: string;
   height: number;
@@ -48,8 +52,8 @@ export type pokemonEntryType = {
 };
 
 export type blankEntryType = {
-  [key: string]: string | number
-}
+  [key: string]: string | number;
+};
 
 type PokemonAbilities = {
   [key: number]: {
