@@ -55,7 +55,9 @@ watch(() => hoverState.value.isHovering, logHover);
               <!--
               <hr v-if="store.apiState.status !== 'loading' || 'none'" />
             --></div>
-            <div class="dropdown-padding">
+            <div class="dropdown-padding"
+            :class="{ 'dropdown-padding-active': hoverState.isHovering === true }"
+            >
               <div
                 class="dropdown-menu"
                 :class="{ 'dropdown-menu-active': hoverState.isHovering === true }"
@@ -84,6 +86,7 @@ watch(() => hoverState.value.isHovering, logHover);
   background-color: transparent;
   padding-top: 8px;
   position: absolute;
+  pointer-events: none;
 }
 
 .dropdown-menu {
@@ -99,6 +102,12 @@ watch(() => hoverState.value.isHovering, logHover);
   transform: translateY(-10px);
 
   pointer-events: none;
+}
+
+.dropdown-padding-active {
+  pointer-events: all;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dropdown-menu-active {

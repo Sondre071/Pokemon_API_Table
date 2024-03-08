@@ -7,7 +7,7 @@ const store = useTableStore();
 
 </script>
 
-<template lang="">
+<template>
   <div>
     <div class="wrapper">
       <header>
@@ -17,10 +17,6 @@ const store = useTableStore();
         
       
       <div class="actions-menu">
-        <ApiCallDropdown class="action-button-api"></ApiCallDropdown>
-        <!--
-        <hr>
-          -->
         <p class="actions-menu-button" @click="store.clearAll()" >Reset table</p>
         <p @click="store.changeBoolean('debugMode')" class='interactable' >Debug panel</p>
       </div>

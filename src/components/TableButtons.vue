@@ -1,11 +1,19 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
 import ApiCallDropdown from './ApiCallDropdown.vue';
+import FilterDropdown from './FilterDropdown.vue';
 
 const store = useTableStore();
+
+function timeoutFilter() {
+  setTimeout(() => {
+    store.booleans.filterMode = false;
+  }, 2000);
+}
+
 </script>
 
-<template lang="">
+<template>
   <div>
     <div class="wrapper">
       <div class="title">
@@ -26,13 +34,8 @@ const store = useTableStore();
             <button class="search-bar-element" @click="store.clearSearch()">x</button>
           </div>
         </div>
-        <button
-          id="funnel-button"
-          class="bi bi-funnel-fill menu-element icon"
-          v
-          @click="store.changeBoolean('filterMode')"
-          title="Filter by properties"
-        ></button>
+        <!--
+  
         <button
           id="clear-button"
           class="menu-element icon"
@@ -41,16 +44,17 @@ const store = useTableStore();
         >
           &#8634;
         </button>
-
         <button
           id="modify-entry-button"
           class="menu-element"
           @click="store.changeBoolean('manipulateTable')"
           title="Modify table"
         >
+        
           <i class="bi bi-wrench"></i>
           Modify entry
         </button>
+        -->
         <button
           id="new-entry-button"
           class="menu-element"
@@ -60,6 +64,17 @@ const store = useTableStore();
         >
           +&nbsp Add new entry
         </button>
+
+        <div class="filter-wrapper" >
+          <button
+            id="funnel-button"
+            class="bi bi-funnel-fill menu-element icon interactable"
+            v
+            @click="store.changeBoolean('filterMode')"
+            title="Filter by properties"
+          ></button>
+          <FilterDropdown  ></FilterDropdown>
+        </div>
 
         <button class="menu-element page-turn interactable" @click="store.turnPage('left')">
           &lt
@@ -87,15 +102,19 @@ const store = useTableStore();
 }
 
 .menu {
+  box-sizing: border-box;
+  border-radius: 20px;
   grid-row: 2;
   height: calc(100% - 15px);
   display: flex;
   align-items: center;
+  margin-right: 40px;
 }
 
 .menu-element {
-  background-color: rgba(37, 68, 247, 0.945);
   margin-right: 7px;
+  border: solid white 1px;
+  background-color: #687cec;
 }
 
 .icon {
@@ -117,7 +136,6 @@ const store = useTableStore();
   border-radius: 20px;
   font-size: 14px;
   padding: 0 15px;
-  background-color: rgba(37, 68, 247, 0.945);
 
   i {
     font-size: 13px;
@@ -130,7 +148,7 @@ const store = useTableStore();
   height: 25px;
   font-size: 16px;
   border-radius: 4px;
-  left: calc(100% - 694px);
+  left: calc(100% - 485px);
   top: 4px;
   position: relative;
 }
@@ -154,7 +172,7 @@ const store = useTableStore();
   align-content: center;
   color: white;
   border-radius: 20px;
-  background-color: rgba(37, 68, 247, 0.945);
+  background-color: #687cec;
 }
 
 .search-bar-input {
@@ -186,4 +204,9 @@ input {
   margin-right: -15px;
   outline: none;
 }
+
+.interactable {
+  cursor:pointer;
+}
+
 </style>

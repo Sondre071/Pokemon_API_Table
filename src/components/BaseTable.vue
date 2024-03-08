@@ -62,30 +62,7 @@ function deleteCheckmarked() {
               
               
               
-              <div v-show="store.getBoolean('filterMode')" class="">
-                <div class="">
-                  <select
-                    v-model="store.activeFilters[index]"
-                    :disabled="store.currentEditIndex !== undefined"
-                  >
-                    <option
-                      v-for="(value, valueIndex) in store.currentDropdowns[index]"
-                      :key="valueIndex"
-                    >
-                      {{ value }}
-                    </option>
-                  </select>
-                  <button
-                    :class="{
-                      interactable: !store.currentEditStatus(),
-                      fade: store.currentEditStatus(),
-                    }"
-                    :disabled="store.currentEditIndex !== undefined"
-                    class="bi bi-trash3 icon"
-                    @click="store.clearActiveFiltersButton(index)"
-                  ></button>
-                </div>
-              </div>
+              
             </th>
             <th id="list-buttons-column" colspan="2"></th>
           </tr>
@@ -202,4 +179,9 @@ table #trash-can {
   border: none;
   background: transparent;
 }
+
+.interactable {
+  cursor: pointer;
+}
+
 </style>

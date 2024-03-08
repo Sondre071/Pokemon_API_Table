@@ -79,6 +79,7 @@ export const useTableStore = defineStore('tableStore', () => {
 
   function clearActiveFilters() {
     activeFilters.value.fill('', 0, dataFields.value.length);
+    booleans.value.filterMode = false;
   }
 
   function clearSearch() {
@@ -363,10 +364,12 @@ export const useTableStore = defineStore('tableStore', () => {
   }
 
   function submitButton(): void {
+    /*
     if (Object.values(pokemonData.value[0]).some((element) => element === '')) {
       console.log('returning');
       return;
     }
+    */
 
     changeBoolean('newEntryEdit', false);
     changeBoolean('oldEntryEdit', false);
