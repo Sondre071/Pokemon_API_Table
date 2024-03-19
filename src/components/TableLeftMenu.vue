@@ -18,6 +18,8 @@ const store = useTableStore();
       
       <div class="actions-menu">
         <p class="actions-menu-button" @click="store.clearAll()" >Reset table</p>
+        <p @click="console.log(store.pokemonData[0])" > Log entry 1 </p>
+        <p @click="store.apiState.status = 'loading'" class="interactable" >Loading test</p>
         <p @click="store.changeBoolean('debugMode')" class='interactable' >Debug panel</p>
       </div>
     </div>

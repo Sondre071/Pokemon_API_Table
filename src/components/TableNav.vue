@@ -13,6 +13,10 @@ const store = useTableStore();
   </div>
 </template>
 
-<style lang="">
+<style>
+
+.navigation {
+  text-align: center;
+}
 
 </style>

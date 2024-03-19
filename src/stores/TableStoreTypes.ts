@@ -44,7 +44,7 @@ export type RawDataType = {
 };
 
 export type pokemonEntryType = {
-  checkbox: string | boolean;
+  checkbox: boolean;
   name: string;
   types: string;
   height: number;
@@ -52,7 +52,7 @@ export type pokemonEntryType = {
 };
 
 export type blankEntryType = {
-  [key: string]: string | number;
+  [key: string]: string | number | boolean;
 };
 
 type PokemonAbilities = {

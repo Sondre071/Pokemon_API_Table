@@ -5,30 +5,37 @@
   justify-content: center;
 }
 
-.grid-outer-wrapper {
+.table-outer-wrapper {
   width: 72%;
   height: 95vh;
   background-color: rgb(246, 246, 246, 0.75);
   box-sizing: border-box;
-  box-shadow: 4px 4px 8px 4px rgba(0, 0, 0, 0.13);
+  box-shadow: 0.1px 0.1px 0.2px hsl(0deg 0% 61% / 0.43),
+  0.6px 0.7px 1px -0.4px hsl(0deg 0% 61% / 0.42),
+  1.2px 1.4px 2px -0.9px hsl(0deg 0% 61% / 0.41),
+  2.1px 2.5px 3.6px -1.3px hsl(0deg 0% 61% / 0.4),
+  3.6px 4.3px 6.1px -1.8px hsl(0deg 0% 61% / 0.39),
+  6.1px 7.2px 10.3px -2.3px hsl(0deg 0% 61% / 0.39),
+  9.6px 11.5px 16.4px -2.7px hsl(0deg 0% 61% / 0.38);
   border-radius: 20px;
   display: flex;
   flex-direction: row;
 }
 
-.grid-inner-wrapper {
+.table-grid {
   display: grid;
-  width: calc(100% - 40px);
-  height: calc(100% - 40px);
+  width: calc(100em - 40px);
+  height: calc(100% - 20px);
   grid-template-columns: 100%;
   grid-template-rows: 10% 86% 4%;
+  gap: 10px;
   margin-left: 20px;
 }
 
 .grid-item {
   border-radius: 3px;
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 100em;
+  max-height: 100em;
 }
 
 .inner-item {
@@ -36,7 +43,7 @@
   margin: 0;
 }
 
-.left-menu {
+.table-left-menu {
   width: 20%;
   border-radius: 22px 3px 3px 22px;
   background-color: #2544f7f1;
@@ -91,4 +98,16 @@
 
 .grid-table-inner-nav {
   height: 7%;
+}
+
+:root {
+  --shadow-color: 0deg 0% 61%;
+  --shadow-elevation-high:
+  0.1px 0.1px 0.2px hsl(var(--shadow-color) / 0.43),
+  0.6px 0.7px 1px -0.4px hsl(var(--shadow-color) / 0.42),
+  1.2px 1.4px 2px -0.9px hsl(var(--shadow-color) / 0.41),
+  2.1px 2.5px 3.6px -1.3px hsl(var(--shadow-color) / 0.4),
+  3.6px 4.3px 6.1px -1.8px hsl(var(--shadow-color) / 0.39),
+  6.1px 7.2px 10.3px -2.3px hsl(var(--shadow-color) / 0.39),
+  9.6px 11.5px 16.4px -2.7px hsl(var(--shadow-color) / 0.38);
 }

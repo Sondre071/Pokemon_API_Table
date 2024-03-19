@@ -13,10 +13,10 @@ const store = useTableStore();
 
 <template>
   <div class="app">
-    <div class="grid-outer-wrapper">
-      <TableLeftMenu class="left-menu"></TableLeftMenu>
-      <div class="grid-inner-wrapper">
-        <div class=" grid-item grid-table-top-area">
+    <div class="table-outer-wrapper">
+      <TableLeftMenu class="table-left-menu"></TableLeftMenu>
+      <div class="table-grid">
+        <div class="grid-item grid-table-top-area">
             <TableButtons class="top-area-buttons"></TableButtons>
         </div>
         <div v-if="store.apiState.status === 'loaded'" class="grid-item grid-table-outer">
@@ -25,7 +25,7 @@ const store = useTableStore();
           </div>
           <TableNav class="grid-inner-table-nav inner-item"></TableNav>
         </div>
-        <div v-if="store.apiState.status === 'loading'" class="grid-item grid-table-outer">
+        <div v-else-if="store.apiState.status === 'loading'" class="grid-item grid-table-outer">
           <TablePlaceholder></TablePlaceholder>
         </div>
       </div>
@@ -34,3 +34,10 @@ const store = useTableStore();
 </template>
 
 <style src="./App.css" scoped></style>
+<style>
+
+.interactable {
+  cursor: pointer;
+}
+
+</style>

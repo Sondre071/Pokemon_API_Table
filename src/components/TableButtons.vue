@@ -34,38 +34,16 @@ function timeoutFilter() {
             <button class="search-bar-element" @click="store.clearSearch()">x</button>
           </div>
         </div>
-        <!--
-  
-        <button
-          id="clear-button"
-          class="menu-element icon"
-          @click="store.clearAll"
-          title="Reset inputs and filters"
-        >
-          &#8634;
-        </button>
-        <button
-          id="modify-entry-button"
-          class="menu-element"
-          @click="store.changeBoolean('manipulateTable')"
-          title="Modify table"
-        >
-        
-          <i class="bi bi-wrench"></i>
-          Modify entry
-        </button>
-        -->
         <button
           id="new-entry-button"
           class="menu-element"
           :class="{ interactable: store.currentEditIndex === undefined }"
           @click="store.plusButton()"
           title="Add new entry"
-        >
-          +&nbsp Add new entry
+        >Add new entry
         </button>
 
-        <div class="filter-wrapper" >
+        <div class="filter-container" >
           <button
             id="funnel-button"
             class="bi bi-funnel-fill menu-element icon interactable"
@@ -73,7 +51,7 @@ function timeoutFilter() {
             @click="store.changeBoolean('filterMode')"
             title="Filter by properties"
           ></button>
-          <FilterDropdown  ></FilterDropdown>
+          <FilterDropdown></FilterDropdown>
         </div>
 
         <button class="menu-element page-turn interactable" @click="store.turnPage('left')">

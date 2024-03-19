@@ -41,7 +41,8 @@ const getIndividualPokemonData = async (pokemonName: string, index: number) => {
   const pokemonIndex = index;
   // optional: abilities,
   const pokemonObject = {
-    checkbox: '',
+    index: index,
+    checkbox: false,
     name: capitalize(pokemonName),
     types: pokemonTypes,
     height: pokemonHeight,

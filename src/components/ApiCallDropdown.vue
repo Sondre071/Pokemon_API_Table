@@ -19,10 +19,6 @@ const hoverState = ref({
   hoveringOver: '',
 });
 
-function logHover() {
-  console.log(hoverState.value.isHovering);
-}
-
 async function makeApiCall() {
   hoverState.value.isHovering = false;
 
@@ -33,9 +29,10 @@ async function makeApiCall() {
   store.clearAll();
   store.dropdownMapping();
   store.apiState.status = 'loaded';
+  store.refreshTable();
 }
 
-watch(() => hoverState.value.isHovering, logHover);
+
 </script>
 
 <template lang="">

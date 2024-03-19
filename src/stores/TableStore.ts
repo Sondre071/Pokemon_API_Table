@@ -18,16 +18,17 @@ import type {
   currentEditBackupType,
   booleansType,
 } from './TableStoreTypes';
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, computed, onMounted } from 'vue';
+import type { Ref } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
   const apiDataListLength = 80;
 
   const apiState: apiStateType = ref({
-    name: "none",
-    status: "none",
-  })
+    name: 'none',
+    status: 'none',
+  });
 
   const pokemonData: pokemonDataType = ref([]); // source data
   const renderedPokemonData: pokemonDataType = ref([]); // the data rendered on screen
@@ -56,21 +57,26 @@ export const useTableStore = defineStore('tableStore', () => {
     debugMode: false,
   });
 
+  const dotsMenuIndex: Ref<undefined | number> = ref(undefined);
+
   async function createPokemonList(): Promise<string> {
     console.log('createPokemonList()');
     apiState.value.status = 'loading';
 
     const newApiData = await makeList(apiDataListLength);
+    const clonedApiData = cloneDeep(newApiData);
 
-    pokemonData.value = newApiData.data;
-    renderedPokemonData.value = newApiData.data;
+    pokemonData.value = clonedApiData.data;
+    renderedPokemonData.value = clonedApiData.data;
 
-    return newApiData.name;
-
+    return clonedApiData.name;
   }
 
   function createDataFields() {
     dataFields.value = Object.keys(pokemonData.value[0]);
+
+    //dataFields.value = Object.keys(pokemonData.value[0]).filter(element => element !== 'checkbox');
+    // why this no work? start her.
   }
 
   function clearDropdowns() {
@@ -116,10 +122,6 @@ export const useTableStore = defineStore('tableStore', () => {
     booleans.value[str] = setToggle === undefined ? !booleans.value[str] : setToggle;
   }
 
-  function apiLoadedStatus() {
-
-  }
-
   function checkSearch(): boolean {
     return search.value !== '';
   }
@@ -133,15 +135,13 @@ export const useTableStore = defineStore('tableStore', () => {
     if (!sortField) {
       return;
     }
-    
+
     if (sortKey !== sortField.value) {
-      console.log("sortTable(9 returning early")
+      console.log('sortTable(9 returning early');
       sortState.value = 'none';
     }
-    sortField.value = typeof sortKey === 'string' ? sortKey: undefined;
+    sortField.value = typeof sortKey === 'string' ? sortKey : undefined;
     // sortKey er et array on boot av en eller annen grunn, dette er en fiks for det.
-
-
 
     switch (sortState.value) {
       case 'none':
@@ -227,15 +227,11 @@ export const useTableStore = defineStore('tableStore', () => {
 
     return newArray;
   }
-  
-    // start her!
-    // fjern renderedPokeemonData, hver entry skal være real.
-
 
   function refreshTable(sortKey: undefined | keyof dataFieldsType = undefined): void {
     console.log('refreshTable()');
 
-    let currentPokemonList = cloneDeep(pokemonData.value) as Array<pokemonEntryType>;
+    let currentPokemonList = pokemonData.value as Array<pokemonEntryType>;
     renderedPokemonData.value = [];
 
     if (checkFilters()) {
@@ -245,19 +241,18 @@ export const useTableStore = defineStore('tableStore', () => {
       currentPokemonList = filterListBySearch(currentPokemonList);
     }
 
-    
-
     if (sortKey) {
-      
-      currentPokemonList = sortTable(currentPokemonList,sortKey as keyof dataFieldsType) as Array<pokemonEntryType>;
-      
+      currentPokemonList = sortTable(
+        currentPokemonList,
+        sortKey as keyof dataFieldsType,
+      ) as Array<pokemonEntryType>;
     } else {
-      console.log(sortKey)
-      currentPokemonList = sortTable(currentPokemonList,sortField.value as keyof dataFieldsType) as Array<pokemonEntryType>;
+      console.log(sortKey);
+      currentPokemonList = sortTable(
+        currentPokemonList,
+        sortField.value as keyof dataFieldsType,
+      ) as Array<pokemonEntryType>;
     }
-
-    
-    
 
     currentTableLength.value = currentPokemonList.length;
 
@@ -265,11 +260,11 @@ export const useTableStore = defineStore('tableStore', () => {
       currentPokemonList = condenseDataToPage(currentPokemonList);
     }
 
-    renderedPokemonData.value = cloneDeep(currentPokemonList);
+    renderedPokemonData.value = currentPokemonList;
   }
 
   function dropdownMapping() {
-    console.log("dropdownMapping()")
+    console.log('dropdownMapping()');
     const filteredDropdowns = dataFields.value.map(() => new Set());
 
     renderedPokemonData.value.forEach((element) => {
@@ -324,9 +319,15 @@ export const useTableStore = defineStore('tableStore', () => {
     console.log('createBlankEntry()');
     const newBlankEntry: blankEntryType = {};
 
-    for (const key in dataFields.value) {
-      newBlankEntry[key] = '';
-    }
+    dataFields.value.forEach((x) => {
+      if (x === 'index') {
+        newBlankEntry[x] = pokemonData.value.length;
+      } else if (x === 'checkbox') {
+        newBlankEntry[x] = false;
+      } else {
+        newBlankEntry[x] = '';
+      }
+    });
 
     pokemonData.value.unshift(newBlankEntry);
     currentEditIndex.value = 0;
@@ -364,13 +365,6 @@ export const useTableStore = defineStore('tableStore', () => {
   }
 
   function submitButton(): void {
-    /*
-    if (Object.values(pokemonData.value[0]).some((element) => element === '')) {
-      console.log('returning');
-      return;
-    }
-    */
-
     changeBoolean('newEntryEdit', false);
     changeBoolean('oldEntryEdit', false);
     clearCurrentEditBackup();
@@ -391,17 +385,32 @@ export const useTableStore = defineStore('tableStore', () => {
     }
   }
 
+  function checkmarkAll() {
+    let numOfEntriesChanged = 0;
+
+    renderedPokemonData.value.forEach((element) => {
+      if (element['checkbox'] !== true) {
+        element['checkbox'] = true;
+        numOfEntriesChanged++;
+      }
+    });
+
+    if (numOfEntriesChanged === 0) {
+      renderedPokemonData.value.forEach((element) => {
+        element['checkbox'] = false;
+      });
+    }
+  }
+
   function currentEditStatus() {
     return currentEditIndex.value === undefined ? false : true;
   }
 
   onMounted(() => {
     console.log('-- Table component loaded --');
-    watch(
-      () => [search.value, activeFilters.value, pageNumber.value, pokemonData.value],
-        refreshTable as any,
-      { deep: true },
-    );
+    watch(() => [search.value, activeFilters.value, pageNumber.value], refreshTable as any, {
+      deep: true,
+    });
   });
 
   return {
@@ -413,6 +422,7 @@ export const useTableStore = defineStore('tableStore', () => {
     currentEditIndex,
     currentTableLength,
     dataFields,
+    dotsMenuIndex,
     pageCount,
     pageNumber,
     pokemonData,
@@ -420,8 +430,10 @@ export const useTableStore = defineStore('tableStore', () => {
     search,
     sortField,
     sortState,
+
     changeBoolean,
     checkFilters,
+    checkmarkAll,
     checkSearch,
     clearActiveFilters,
     clearActiveFiltersButton,
