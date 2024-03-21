@@ -9,49 +9,33 @@ defineProps({
     required: true,
   },
 });
+
+function clearDotsMenu() {
+  store.dotsMenuIndex = undefined;
+}
 </script>
 
 <template>
-  <div class="menu-outer-outer" >
+  <div class="menu-outer-outer">
     <div
       class="menu-outer-container"
       :class="{ 'menu-outer-container-active': store.dotsMenuIndex === index }"
     >
       <div class="menu-inner-container">
-        <button class="icon" > Modify</button>
-        <button class="icon" > Delete</button>
-        <button
-                  id="trash-can"
-                  :class="{
-                    invisible: !store.getBoolean('manipulateTable'),
-                  }"
-                  class="bi bi-trash3 icon interactable list-buttons"
-                  @click="store.deleteEntry(index)"
-                ></button>
-                
-                <button
-                  id="pen"
-                  :class="{
-                    invisible: !store.getBoolean('manipulateTable'),
-                  }"
-                  class="icon interactable list-buttons"
-                  style="transform: rotate(90deg)"
-                  @click="store.modifyEntryButton(index)"
-                >
-                  &#9998;
-                </button>
-                <!--start her! fiks dropdown!-->
+        <button class="icon" @click="[store.modifyEntryButton(index), clearDotsMenu()]">
+          Modify
+        </button>
+        <button class="icon" @click="[store.deleteEntry(index), clearDotsMenu()]">Delete</button>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-
 .menu-outer-outer {
-    position: relative;
-    z-index: 90000000;
-    
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .menu-outer-container {
@@ -59,7 +43,7 @@ defineProps({
   pointer-events: none;
   opacity: 0;
   bottom: -0.45em;
-  left: 1.5em;
+  left: 1.1em;
 
   transition:
     opacity 150ms ease-in-out,
@@ -68,13 +52,30 @@ defineProps({
 }
 
 .menu-inner-container {
-  background-color: white;
-
+  background-color: rgb(245, 245, 245);
+  position: relative;
+  left: 20px;
+  top: 20px;
+  display: flex;
+  flex-direction: column;
   box-shadow: 2px 2px 5px 0px;
   border-radius: 4px;
-  padding: 0.6rem 0.8rem;
+  padding: 2px;
+}
 
-  pointer-events: none;
+.menu-inner-container button {
+  background-color: white;
+  margin: 0;
+  border: none;
+  padding: 0.5em;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: color 0.3s;
+  margin: 1.5px 0;
+}
+
+.menu-inner-container button:hover {
+  color: rgb(169, 169, 169);
 }
 
 .menu-outer-container-active {

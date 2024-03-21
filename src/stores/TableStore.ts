@@ -23,7 +23,7 @@ import type { Ref } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
-  const apiDataListLength = 80;
+  const apiDataListLength = 20;
 
   const apiState: apiStateType = ref({
     name: 'none',
@@ -41,7 +41,7 @@ export const useTableStore = defineStore('tableStore', () => {
   const sortState: sortStateType = ref('none');
   const sortField: sortFieldType = ref(undefined);
 
-  const pageCount: pageCountType = ref(35);
+  const pageCount: pageCountType = ref(8);
   const pageNumber: pageNumberType = ref(1);
   const currentTableLength: currentTableLengthType = ref(undefined);
 
@@ -131,35 +131,35 @@ export const useTableStore = defineStore('tableStore', () => {
   }
 
   function sortTable(data: Array<pokemonEntryType>, sortKey: keyof dataFieldsType) {
-    console.log('sortTable()');
-    if (!sortField) {
-      return;
+    if (!sortField.value && !sortKey) {
+      return data;
     }
 
     if (sortKey !== sortField.value) {
-      console.log('sortTable(9 returning early');
       sortState.value = 'none';
     }
-    sortField.value = typeof sortKey === 'string' ? sortKey : undefined;
-    // sortKey er et array on boot av en eller annen grunn, dette er en fiks for det.
+
+    sortField.value = sortKey
+
+    let returnData;
 
     switch (sortState.value) {
       case 'none':
-        data = sortBy(data, sortKey);
+        returnData = sortBy(data, sortKey);
         sortState.value = 'ascending';
         break;
       case 'ascending':
-        data = sortBy(data.reverse());
+        returnData = sortBy(data.reverse());
         sortState.value = 'descending';
         break;
       case 'descending':
-        data = sortBy(data, 'pokedexIndex');
+        returnData = sortBy(data, 'index');
         sortState.value = 'none';
         sortField.value = undefined;
         break;
     }
 
-    return data;
+    return returnData;
   }
 
   function sortIcon(field: string): string {
@@ -232,6 +232,7 @@ export const useTableStore = defineStore('tableStore', () => {
     console.log('refreshTable()');
 
     let currentPokemonList = pokemonData.value as Array<pokemonEntryType>;
+    
     renderedPokemonData.value = [];
 
     if (checkFilters()) {
@@ -240,14 +241,14 @@ export const useTableStore = defineStore('tableStore', () => {
     if (checkSearch()) {
       currentPokemonList = filterListBySearch(currentPokemonList);
     }
-
+    
     if (sortKey) {
+      console.log("yes sortkey!")
       currentPokemonList = sortTable(
         currentPokemonList,
         sortKey as keyof dataFieldsType,
       ) as Array<pokemonEntryType>;
     } else {
-      console.log(sortKey);
       currentPokemonList = sortTable(
         currentPokemonList,
         sortField.value as keyof dataFieldsType,
@@ -255,7 +256,7 @@ export const useTableStore = defineStore('tableStore', () => {
     }
 
     currentTableLength.value = currentPokemonList.length;
-
+    
     if (currentPokemonList.length > pageCount.value) {
       currentPokemonList = condenseDataToPage(currentPokemonList);
     }
@@ -269,9 +270,10 @@ export const useTableStore = defineStore('tableStore', () => {
 
     renderedPokemonData.value.forEach((element) => {
       Object.values(element).forEach((value, index) => {
-        if (typeof value === 'string' && (value as string).includes(',')) {
-          const copy = value;
-        }
+
+        //if (typeof value === 'string' && (value as string).includes(',')) {
+        //  const copy = value;
+        //}
 
         filteredDropdowns[index].add(value);
       });
@@ -330,15 +332,21 @@ export const useTableStore = defineStore('tableStore', () => {
     });
 
     pokemonData.value.unshift(newBlankEntry);
+    pageNumber.value = 1;
+    refreshTable();
+
     currentEditIndex.value = 0;
     changeBoolean('newEntryEdit', true);
   }
 
   function deleteEntry(index: number) {
+    console.log("deleting: " + index)
     pokemonData.value.splice(index, 1);
     clearCurrentEditBackup();
     clearCurrentEditIndex();
     changeBoolean('newEntryEdit', false);
+
+    refreshTable();
   }
 
   function restoreEntry() {
@@ -362,6 +370,9 @@ export const useTableStore = defineStore('tableStore', () => {
     } else if (getBoolean('newEntryEdit')) {
       deleteEntry(currentEditIndex.value as number);
     }
+
+    refreshTable();
+
   }
 
   function submitButton(): void {

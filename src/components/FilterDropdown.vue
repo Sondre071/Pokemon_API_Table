@@ -32,12 +32,16 @@ function setSelectedFilter(name: string, index: number) {
           <button
             v-if="item !== 'checkbox' && item !== 'index'"
             @click="setSelectedFilter(item, index)"
-            class="interactable dropdown-button icon"
+            class="interactable dropdown-button"
           >
             {{ item }}
           </button>
-          <div v-if="selectedFilter.name === item">
-            <div v-for="item in store.currentDropdowns[index]">hi</div>
+          <div v-if="selectedFilter.name === item" class="secondary-dropdown-menu-absolute">
+            <div v-for="item in store.currentDropdowns[index]" class="secondary-dropdown-menu">
+              <button class="dropdown-button">
+                {{ item }}
+              </button>
+            </div>
           </div>
         </div>
         <button @click="store.clearActiveFilters()" class="interactable dropdown-button icon">
@@ -55,7 +59,6 @@ function setSelectedFilter(name: string, index: number) {
   pointer-events: none;
   opacity: 0;
   transform: translateY(-10px);
-
   transition:
     opacity 150ms ease-in-out,
     transform 150ms ease-in-out;
@@ -70,19 +73,46 @@ function setSelectedFilter(name: string, index: number) {
 
 .dropdown-menu {
   box-shadow: 2px 2px 5px 0px;
+  border-radius: 4px;
   display: flex;
   flex-direction: column;
+  background-color: rgb(245, 245, 245);
+}
+
+.secondary-dropdown-menu-absolute {
+  position: absolute;
+  pointer-events: none;
+}
+
+.secondary-dropdown-menu-container {
+  background-color: white;
+  width: 200px;
+  box-shadow: 2px 2px 5px 0px;
+}
+
+.secondary-dropdown-menu {
+  pointer-events: all;
+  z-index: 5;
+  position: relative;
+  left: 7em;
+  display: flex;
+  flex-direction: column;
+  border-radius: 4px;
   background-color: white;
 }
 
-.dropdown-menu button {
-  width: 97%;
-  margin: 2px 2px;
-  background-color:#2545f71b;
+.dropdown-button {
+  border: none;
+  background-color: white;
+  margin: 1.5px;
   padding: 5px 8px 5px 8px;
   text-align: left;
   border-radius: 2px;
   font-size: 14px;
+}
+
+.dropdown-button:hover {
+  color: rgb(169, 169, 169);
 }
 
 .icon {

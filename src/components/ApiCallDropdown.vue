@@ -11,6 +11,8 @@ const interactColors = {
   hover: 'lightgray',
 };
 
+const hoverColor = 'lightgray';
+
 const hoverState = ref({
   statusText: computed(() => {
     return store.apiState.status === 'loaded' ? store.apiState.name : 'Fetch data';
@@ -25,14 +27,11 @@ async function makeApiCall() {
   store.apiState.name = await store.createPokemonList();
 
   store.createDataFields();
-
   store.clearAll();
   store.dropdownMapping();
   store.apiState.status = 'loaded';
   store.refreshTable();
 }
-
-
 </script>
 
 <template lang="">
@@ -49,11 +48,10 @@ async function makeApiCall() {
             <div class="title" @mouseenter="hoverState.isHovering = true">
               <span>{{ hoverState.statusText }}</span>
               <i class="bi bi-chevron-down"></i>
-              <!--
-              <hr v-if="store.apiState.status !== 'loading' || 'none'" />
-            --></div>
-            <div class="dropdown-padding"
-            :class="{ 'dropdown-padding-active': hoverState.isHovering === true }"
+            </div>
+            <div
+              class="dropdown-padding"
+              :class="{ 'dropdown-padding-active': hoverState.isHovering === true }"
             >
               <div
                 class="dropdown-menu"
@@ -72,8 +70,8 @@ async function makeApiCall() {
 </template>
 
 <style scoped>
+
 .wrapper {
-  color: var(interactColors[ 'default']);
   box-sizing: border-box;
   width: 100px;
   background-color: none;
@@ -89,7 +87,7 @@ async function makeApiCall() {
 .dropdown-menu {
   background-color: white;
   box-shadow: 2px 2px 5px 0px;
-  
+
   opacity: 0;
   border-radius: 4px;
   padding: 0.6rem 0.8rem;
@@ -143,11 +141,11 @@ async function makeApiCall() {
 }
 
 .title:hover {
-  color: v-bind(interactColors[ 'hover']);
+  color: v-bind(hoverColor);
 }
 
 .dropdown-button:hover {
-  color: v-bind(interactColors[ 'hover']);
+  color: v-bind(hoverColor);
 }
 
 hr {
@@ -162,4 +160,12 @@ hr {
   font-size: 20px;
   text-align: center;
 }
+
+:root {
+  --default: 'black';
+  --hover: 'lightgray';
+}
+
+
+
 </style>

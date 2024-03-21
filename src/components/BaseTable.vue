@@ -1,19 +1,10 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
 import { ref } from 'vue';
-import type { Ref } from 'vue'
+import type { dataFieldsType, pokemonEntryType } from '../stores/TableStoreTypes';
 import TableDataThreeDots from './TableDataThreeDots.vue'
 
 const checkboxArray = ref([]);
-
-const props = defineProps(['dotsMenuOpenIndex'])
-
-
-
-function toggleDotsMenu(index: number) {
-    dotsClickedIndex.value = dotsClickedIndex.value === index ? undefined: index
-    console.log(dotsClickedIndex.value)
-}
 
 const store = useTableStore();
 
@@ -36,6 +27,7 @@ function deleteCheckmarked() {
 
   checkboxArray.value = [];
 }
+
 </script>
 
 <template>
@@ -50,18 +42,17 @@ function deleteCheckmarked() {
                 'filter-mode': store.getBoolean('filterMode'),
                 'non-filter-mode': !store.getBoolean('filterMode'),
               }"
-              v-for="(field, index) in store.dataFields"
+              v-for="field in store.dataFields"
             >
             <span class="table-th" v-if="field !== 'checkbox' && field !== 'index'" >{{ field }}
               <button
                 :key="field"
                 :class="{
-                  interactable: !store.currentEditStatus(),
-                  fade: store.currentEditStatus(),
+                  interactable: !store.currentEditStatus()
                 }"
                 class="icon"
                 id="sort-button"
-                @click="!store.currentEditStatus() ? store.refreshTable(field) : {}"
+                @click="!store.currentEditStatus() ? store.refreshTable(field as keyof dataFieldsType) : {}"
                 aria-label="Sort Icon"
               >
                 <span v-html="store.sortIcon(field)"></span>
@@ -71,7 +62,7 @@ function deleteCheckmarked() {
               <i @click="store.checkmarkAll()" class="interactable bi bi-arrow-down-square"></i>
             </div>
             </th>
-            <th id="list-buttons-column" colspan="2"></th>
+            <th class="table-th-filler" colspan="2"></th>
           </tr>
         </thead>
         <tbody>
@@ -79,7 +70,7 @@ function deleteCheckmarked() {
             <template v-if="store.currentEditIndex === index">
               <td v-for="key in store.dataFields" :key="key">
                 <div v-if="key !== 'checkbox' && key !== 'index'" >
-                  <input type="text" name="key" v-model="store.renderedPokemonData[index][key]" />
+                  <input type="text" name="key" v-model="store.renderedPokemonData[index as number][key as keyof pokemonEntryType]" />
                 </div>
                 <div v-else-if="key === 'checkbox'" class="checkbox-container" >
                   <input type='checkbox' class="checkbox" v-model="store.renderedPokemonData[index][key]" />
@@ -95,7 +86,7 @@ function deleteCheckmarked() {
             <template v-else>
               <td v-for="key in store.dataFields" :key="key">
                 <div v-if="key !== 'checkbox' && key !== 'index'"  >
-                {{ item[key] }}
+                {{ item[key as keyof pokemonEntryType] }}
                 </div>
                 <div v-else-if="key === 'checkbox'" class="checkbox-container">
                 <input class="checkbox" type='checkbox' v-model="store.renderedPokemonData[index][key]" ></input>
@@ -147,20 +138,6 @@ thead tr, tbody tr {
 
 tbody tr {
   background-color: #2545f71b;
-}
-
-
-
-thead th {
-  border-right: red solid 2px;
-}
-
-thead th:first-child {
-  border: none;
-}
-
-thead th:last-child {
-  border: none;
 }
 
 tbody td:first-child {
