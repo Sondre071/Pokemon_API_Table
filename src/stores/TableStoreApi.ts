@@ -6,7 +6,7 @@ import { capitalize } from 'lodash';
 const getPokemonNames = async (listLength: number) => {
   // console.log('*** getPokemonNames()');
   const rawPokemonList = await axios.get(`https://pokeapi.co/api/v2/pokemon/?limit=${listLength}`);
-  let pokemonNames: Array<string> = [];
+  const pokemonNames: Array<string> = [];
   for (let i = 0; i < rawPokemonList.data.results.length; i++) {
     pokemonNames.push(rawPokemonList.data.results[i].name);
   }
@@ -55,7 +55,7 @@ const getIndividualPokemonData = async (pokemonName: string, index: number) => {
 const createPokemonList = async (listLength: number): Promise<Array<pokemonEntryType>> => {
   // console.log('*** createPokemonList()');
   try {
-    let tempPokemonList: Array<pokemonEntryType> = [];
+    const tempPokemonList: Array<pokemonEntryType> = [];
 
     const pokemonNames = await getPokemonNames(listLength);
 
@@ -85,8 +85,8 @@ export const makeList = async (listLength: number): makeListType => {
   try {
     // console.log('*-- makeList() try block');
 
-    let pokemonList: Array<pokemonEntryType> = [];
-    let returnArray = await createPokemonList(listLength);
+    const pokemonList: Array<pokemonEntryType> = [];
+    const returnArray = await createPokemonList(listLength);
 
     returnArray.forEach((element) => {
       // console.log('pushing ' + element.name + ' to pokemonList');

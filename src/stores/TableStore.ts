@@ -1,51 +1,49 @@
 import { defineStore } from 'pinia';
 import { makeList } from './TableStoreApi';
 import type {
-  apiStateType,
-  blankEntryType,
+  ApiStateType,
+  BlankEntryType,
   pokemonEntryType,
-  pokemonDataType,
-  dataFieldsType,
+  DataFieldsType,
   currentDropdownsType,
   activeFiltersType,
-  searchType,
   sortStateType,
   sortFieldType,
-  pageCountType,
-  pageNumberType,
   currentTableLengthType,
   currentEditIndexType,
   currentEditBackupType,
   booleansType,
+  SearchType,
+  PokemonArrayType,
 } from './TableStoreTypes';
-import { ref, watch, computed, onMounted } from 'vue';
-import type { Ref } from 'vue';
+import { ref, shallowRef, watch, onMounted } from 'vue';
+import type { Ref, ShallowRef } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
   const apiDataListLength = 20;
 
-  const apiState: apiStateType = ref({
+  const apiState: Ref<ApiStateType> = ref({
     name: 'none',
     status: 'none',
   });
 
-  const pokemonData: pokemonDataType = ref([]); // source data
-  const renderedPokemonData: pokemonDataType = ref([]); // the data rendered on screen
+  const pokemonData: Ref<PokemonArrayType> = ref([]); // source data
+  const renderedPokemonData: Ref<PokemonArrayType> = ref([]); // the data rendered on screen
 
-  const dataFields: dataFieldsType = ref(['']);
+  const dataFields: DataFieldsType = ref(['']);
 
   const currentDropdowns: currentDropdownsType = ref([]);
   const activeFilters: activeFiltersType = ref([]);
-  const search: searchType = ref('');
-  const sortState: sortStateType = ref('none');
-  const sortField: sortFieldType = ref(undefined);
+  const search: SearchType = shallowRef('');
+  const sortState: sortStateType = shallowRef('none');
+  const sortField: sortFieldType = shallowRef(undefined);
 
-  const pageCount: pageCountType = ref(8);
-  const pageNumber: pageNumberType = ref(1);
-  const currentTableLength: currentTableLengthType = ref(undefined);
+  const pageSize: number = 8;
+  const pageNumber: ShallowRef<number> = shallowRef(1);
+  const currentTableLength: currentTableLengthType = shallowRef(undefined);
 
-  const currentEditIndex: currentEditIndexType = ref(undefined);
+  const currentEditIndex: currentEditIndexType = shallowRef(undefined);
   const currentEditBackup: currentEditBackupType = ref(undefined);
 
   const booleans: booleansType = ref({
@@ -130,7 +128,7 @@ export const useTableStore = defineStore('tableStore', () => {
     return activeFilters.value.some((index) => index !== '');
   }
 
-  function sortTable(data: Array<pokemonEntryType>, sortKey: keyof dataFieldsType) {
+  function sortTable(data: PokemonArrayType, sortKey: keyof DataFieldsType) {
     if (!sortField.value && !sortKey) {
       return data;
     }
@@ -176,9 +174,9 @@ export const useTableStore = defineStore('tableStore', () => {
     }
   }
 
-  function filterListByFilters(data: Array<pokemonEntryType>): Array<pokemonEntryType> {
+  function filterListByFilters(data: PokemonArrayType): PokemonArrayType | never {
     const currentFilters = activeFilters.value;
-    let filteredArray: Array<pokemonEntryType> = [];
+    const filteredArray: PokemonArrayType | never = [];
 
     for (let i = 0; i < data.length; i++) {
       const values = Object.values(data[i]);
@@ -196,9 +194,9 @@ export const useTableStore = defineStore('tableStore', () => {
     return filteredArray;
   }
 
-  function filterListBySearch(data: Array<pokemonEntryType>) {
+  function filterListBySearch(data: PokemonArrayType): PokemonArrayType | never {
     const searchInput = search.value;
-    let filteredArray = [];
+    const filteredArray = [];
 
     for (let i = 0; i < data.length; i++) {
       const valuesToCheck = Object.values(data[i]);
@@ -214,12 +212,12 @@ export const useTableStore = defineStore('tableStore', () => {
     return filteredArray;
   }
 
-  function condenseDataToPage(data: Array<pokemonEntryType>) {
-    let newArray: Array<pokemonEntryType> = [];
+  function condenseDataToPage(data: PokemonArrayType): PokemonArrayType {
+    const newArray: PokemonArrayType = [];
 
-    let loopStart = pageCount.value * pageNumber.value - pageCount.value;
-    let loopEnd =
-      loopStart + pageCount.value > data.length ? data.length : loopStart + pageCount.value;
+    let loopStart = pageSize * pageNumber.value - pageSize;
+    const loopEnd =
+      loopStart + pageSize > data.length ? data.length : loopStart + pageSize;
 
     for (loopStart; loopStart < loopEnd; loopStart++) {
       newArray.push(data[loopStart]);
@@ -228,10 +226,10 @@ export const useTableStore = defineStore('tableStore', () => {
     return newArray;
   }
 
-  function refreshTable(sortKey: undefined | keyof dataFieldsType = undefined): void {
+  function refreshTable(sortKey: undefined | keyof DataFieldsType = undefined): void {
     console.log('refreshTable()');
 
-    let currentPokemonList = pokemonData.value as Array<pokemonEntryType>;
+    let currentPokemonList: PokemonArrayType | never = [...pokemonData.value];
     
     renderedPokemonData.value = [];
 
@@ -243,25 +241,27 @@ export const useTableStore = defineStore('tableStore', () => {
     }
     
     if (sortKey) {
-      console.log("yes sortkey!")
       currentPokemonList = sortTable(
         currentPokemonList,
-        sortKey as keyof dataFieldsType,
-      ) as Array<pokemonEntryType>;
+        sortKey as keyof DataFieldsType,
+      ) as PokemonArrayType;
     } else {
       currentPokemonList = sortTable(
         currentPokemonList,
-        sortField.value as keyof dataFieldsType,
-      ) as Array<pokemonEntryType>;
+        sortField.value as keyof DataFieldsType,
+      ) as PokemonArrayType;
     }
+
+    
 
     currentTableLength.value = currentPokemonList.length;
     
-    if (currentPokemonList.length > pageCount.value) {
+    if (currentPokemonList.length > pageSize) {
       currentPokemonList = condenseDataToPage(currentPokemonList);
     }
 
     renderedPokemonData.value = currentPokemonList;
+    console.log("sortTable() end")
   }
 
   function dropdownMapping() {
@@ -319,7 +319,7 @@ export const useTableStore = defineStore('tableStore', () => {
 
   function createBlankEntry(): void {
     console.log('createBlankEntry()');
-    const newBlankEntry: blankEntryType = {};
+    const newBlankEntry: BlankEntryType = {};
 
     dataFields.value.forEach((x) => {
       if (x === 'index') {
@@ -390,7 +390,7 @@ export const useTableStore = defineStore('tableStore', () => {
     if (direction === 'left') {
       pageNumber.value === 1 ? {} : pageNumber.value--;
     } else {
-      (currentTableLength.value as number) > pageCount.value * pageNumber.value
+      (currentTableLength.value as number) > pageSize * pageNumber.value
         ? pageNumber.value++
         : {};
     }
@@ -434,7 +434,7 @@ export const useTableStore = defineStore('tableStore', () => {
     currentTableLength,
     dataFields,
     dotsMenuIndex,
-    pageCount,
+    pageSize,
     pageNumber,
     pokemonData,
     renderedPokemonData,

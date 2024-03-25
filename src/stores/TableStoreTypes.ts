@@ -1,25 +1,24 @@
-import type { Ref } from 'vue';
-export type apiStateType = Ref<{
+import type { Ref, ShallowRef } from 'vue';
+
+export type ApiStateType = {
   name: string;
   status: 'none' | 'loading' | 'loaded' | 'error';
-}>;
+};
 
-export type pokemonDataType = Ref<Array<pokemonEntryType | blankEntryType>>;
+export type DataFieldsType = Ref<Array<string>>;
 
-export type dataFieldsType = Ref<Array<string>>;
+export type PokemonArrayType = Array<pokemonEntryType | BlankEntryType>
 
 export type currentDropdownsType = Ref<Array<string[]>>;
 export type activeFiltersType = Ref<Array<String>>;
-export type searchType = Ref<string>;
-export type sortStateType = Ref<'none' | 'ascending' | 'descending'>;
-export type sortFieldType = Ref<keyof dataFieldsType | undefined>;
+export type SearchType = ShallowRef<string>;
+export type sortStateType = ShallowRef<'none' | 'ascending' | 'descending'>;
+export type sortFieldType = ShallowRef<keyof DataFieldsType | undefined>;
 
-export type currentEditIndexType = Ref<undefined | number>;
+export type currentEditIndexType = ShallowRef<undefined | number>;
 export type currentEditBackupType = Ref<undefined | pokemonEntryType>;
 
-export type pageCountType = Ref<number>;
-export type pageNumberType = Ref<number>;
-export type currentTableLengthType = Ref<number | undefined>;
+export type currentTableLengthType = ShallowRef<number | undefined>;
 
 export type booleansType = Ref<{
   [key: string]: boolean;
@@ -51,7 +50,7 @@ export type pokemonEntryType = {
   pokedexIndex: number;
 };
 
-export type blankEntryType = {
+export type BlankEntryType = {
   [key: string]: string | number | boolean;
 };
 
