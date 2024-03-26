@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useTableStore } from '../stores/TableStore';
-import { ref } from 'vue';
-import type { dataFieldsType, pokemonEntryType } from '../stores/TableStoreTypes';
+import { ref, watch } from 'vue';
+import type { DataFieldsType, pokemonEntryType } from '../stores/TableStoreTypes';
 import TableDataThreeDots from './TableDataThreeDots.vue'
+import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
 
 const checkboxArray = ref([]);
 
 const store = useTableStore();
 
-
+const emitTest = ref("hello!")
 
 function deleteCheckmarked() {
   const deleteList = checkboxArray.value
@@ -28,6 +29,12 @@ function deleteCheckmarked() {
   checkboxArray.value = [];
 }
 
+function emitTestLog() {
+  console.log(emitTest.value)
+}
+
+watch(() => emitTest, emitTestLog)
+
 </script>
 
 <template>
@@ -41,7 +48,7 @@ function deleteCheckmarked() {
               :class="{
                 'filter-mode': store.getBoolean('filterMode'),
                 'non-filter-mode': !store.getBoolean('filterMode'),
-              }"
+              }" :key="field"
               v-for="field in store.dataFields"
             >
             <span class="table-th" v-if="field !== 'checkbox' && field !== 'index'" >{{ field }}
@@ -52,7 +59,7 @@ function deleteCheckmarked() {
                 }"
                 class="icon"
                 id="sort-button"
-                @click="!store.currentEditStatus() ? store.refreshTable(field as keyof dataFieldsType) : {}"
+                @click="!store.currentEditStatus() ? store.refreshTable(field as keyof DataFieldsType) : {}"
                 aria-label="Sort Icon"
               >
                 <span v-html="store.sortIcon(field)"></span>
@@ -66,7 +73,7 @@ function deleteCheckmarked() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in store.renderedPokemonData">
+          <tr v-for="(item, index) in store.renderedPokemonData" :key="index">
             <template v-if="store.currentEditIndex === index">
               <td v-for="key in store.dataFields" :key="key">
                 <div v-if="key !== 'checkbox' && key !== 'index'" >
@@ -89,7 +96,7 @@ function deleteCheckmarked() {
                 {{ item[key as keyof pokemonEntryType] }}
                 </div>
                 <div v-else-if="key === 'checkbox'" class="checkbox-container">
-                <input class="checkbox" type='checkbox' v-model="store.renderedPokemonData[index][key]" ></input>
+                <input class="checkbox" type='checkbox' v-model="store.renderedPokemonData[index][key]" />
                 </div>
               </td>
               <td>

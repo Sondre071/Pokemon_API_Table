@@ -1,4 +1,4 @@
-import type { Ref, ShallowRef } from 'vue';
+import type { Ref } from 'vue';
 
 export type ApiStateType = {
   name: string;
@@ -11,14 +11,14 @@ export type PokemonArrayType = Array<pokemonEntryType | BlankEntryType>
 
 export type currentDropdownsType = Ref<Array<string[]>>;
 export type activeFiltersType = Ref<Array<String>>;
-export type SearchType = ShallowRef<string>;
-export type sortStateType = ShallowRef<'none' | 'ascending' | 'descending'>;
-export type sortFieldType = ShallowRef<keyof DataFieldsType | undefined>;
+export type SearchType = Ref<string>;
+export type sortStateType = Ref<'none' | 'ascending' | 'descending'>;
+export type sortFieldType = Ref<keyof DataFieldsType | undefined>;
 
-export type currentEditIndexType = ShallowRef<undefined | number>;
+export type currentEditIndexType = Ref<undefined | number>;
 export type currentEditBackupType = Ref<undefined | pokemonEntryType>;
 
-export type currentTableLengthType = ShallowRef<number | undefined>;
+export type currentTableLengthType = Ref<number | undefined>;
 
 export type booleansType = Ref<{
   [key: string]: boolean;

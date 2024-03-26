@@ -16,8 +16,8 @@ import type {
   SearchType,
   PokemonArrayType,
 } from './TableStoreTypes';
-import { ref, shallowRef, watch, onMounted } from 'vue';
-import type { Ref, ShallowRef } from 'vue';
+import { ref, watch, onMounted } from 'vue';
+import type { Ref } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
@@ -35,15 +35,15 @@ export const useTableStore = defineStore('tableStore', () => {
 
   const currentDropdowns: currentDropdownsType = ref([]);
   const activeFilters: activeFiltersType = ref([]);
-  const search: SearchType = shallowRef('');
-  const sortState: sortStateType = shallowRef('none');
-  const sortField: sortFieldType = shallowRef(undefined);
+  const search: SearchType = ref('');
+  const sortState: sortStateType = ref('none');
+  const sortField: sortFieldType = ref(undefined);
 
   const pageSize: number = 8;
-  const pageNumber: ShallowRef<number> = shallowRef(1);
-  const currentTableLength: currentTableLengthType = shallowRef(undefined);
+  const pageNumber: Ref<number> = ref(1);
+  const currentTableLength: currentTableLengthType = ref(undefined);
 
-  const currentEditIndex: currentEditIndexType = shallowRef(undefined);
+  const currentEditIndex: currentEditIndexType = ref(undefined);
   const currentEditBackup: currentEditBackupType = ref(undefined);
 
   const booleans: booleansType = ref({
@@ -147,7 +147,7 @@ export const useTableStore = defineStore('tableStore', () => {
         sortState.value = 'ascending';
         break;
       case 'ascending':
-        returnData = sortBy(data.reverse());
+        returnData = sortBy(data, sortKey).reverse();
         sortState.value = 'descending';
         break;
       case 'descending':
