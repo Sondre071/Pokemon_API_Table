@@ -39,7 +39,7 @@ export const useTableStore = defineStore('tableStore', () => {
   const sortState: sortStateType = ref('none');
   const sortField: sortFieldType = ref(undefined);
 
-  const pageSize: number = 8;
+  const pageSize: number = 30;
   const pageNumber: Ref<number> = ref(1);
   const currentTableLength: currentTableLengthType = ref(undefined);
 
