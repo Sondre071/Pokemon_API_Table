@@ -21,7 +21,7 @@ import type { Ref } from 'vue';
 import { cloneDeep, sortBy } from 'lodash';
 
 export const useTableStore = defineStore('tableStore', () => {
-  const apiDataListLength = 20;
+  const apiDataListLength = 60;
 
   const apiState: Ref<ApiStateType> = ref({
     name: 'none',
